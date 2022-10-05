@@ -1,0 +1,373 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="prFechaDiaria">
+          <DefaultValue>20220619</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>DEFINE  
+
+MEASURE 'Saldo Captacion'[Interes Bs] = calculate(SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', [Tasa]*[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))
+
+MEASURE 'Saldo Captacion'[Interes ANT mes Bs] = CALCULATE('Saldo Captacion'[Interes Bs] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+MEASURE 'Saldo Captacion'[Saldo ANT mes Bs] = CALCULATE([Saldo Bs con BSEI] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+
+MEASURE 'Saldo Captacion'[Saldo Medio ANT mes USD] = CALCULATE([Saldo Medio BSEI USD],PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))                                              
+EVALUATE
+ADDCOLUMNS(
+	CALCULATETABLE(
+				SUMMARIZECOLUMNS(Captacion[recurso]
+				                 ,Cliente[Clasificacion SIF]   
+				                 ,Captacion[productoSinMoneda]
+				                 ,PAF[Cod Agencia]
+				                 ,PAF[Nombre Agencia]
+							     ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+								 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+								 ,"Interes Bs",[Interes Bs]
+								 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]	
+								 ,"Saldo Medio USD",[Saldo Medio USD]
+								 
+		                         ,"Saldo USD Mes Anterior",[Saldo USD Mes Anterior con BSEI]
+								 ,"Cant de Contratos Mes Anterior",[Cant de Contratos Mes Anterior con BSEI]
+								 ,"Interes ANT mes Bs",[Interes ANT mes Bs]
+								 ,"Saldo ANT mes Bs", [Saldo ANT mes Bs]  	
+                                 ,"Saldo Medio USD Mes Anterior",[Saldo Medio ANT mes USD]										 
+					    )
+			,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+			,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras","Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+			)
+	,"Rango Saldo Mayor 500",SWITCH(TRUE()
+									,[Saldo USD con BSEI]&gt;2000000, "Mayor 2,000.000"
+									,[Saldo USD con BSEI]&gt;1000000, "&gt;1,000,000 &lt;= 2,000,000"
+									,[Saldo USD con BSEI]&gt; 500000, "&gt;500,000 &lt;= 1,000,000"
+									,[Saldo USD con BSEI]&gt; 200000, "&gt;200,000 &lt;= 500,000"
+									,[Saldo USD con BSEI]&gt; 100000, "&gt;100,000 &lt;= 200,000"
+									,[Saldo USD con BSEI]&gt;  50000, "&gt;50,000 &lt;= 100,000"
+									,[Saldo USD con BSEI]&gt;  30000, "&gt;30,000 &lt;= 50,000"
+									,[Saldo USD con BSEI]&gt;  20000, "&gt;20,000 &lt;= 30,000"
+									,[Saldo USD con BSEI]&gt;  15000, "&gt;15,000 &lt;= 20,000"
+									,[Saldo USD con BSEI]&gt;  10000, "&gt;10,000 &lt;= 15,000"
+									,[Saldo USD con BSEI]&gt;   5000, "&gt;5,000 &lt;= 10,000"
+									,[Saldo USD con BSEI]&gt;   1000, "&gt;1,000 &lt;= 5,000"
+									,[Saldo USD con BSEI]&gt;    500, "&gt; 500 &lt;= 1,000"
+									                             , "Menor/Igual 500")	
+	,"Rango Saldo menor 500",SWITCH(TRUE()
+	                                ,[Saldo USD con BSEI]&gt;500, "Mayor a 500"
+									,[Saldo USD con BSEI]&gt;400, "&gt; 400 &lt;= 500"
+									,[Saldo USD con BSEI]&gt;300, "&gt; 300 &lt;= 400"
+									,[Saldo USD con BSEI]&gt;200, "&gt; 200 &lt;= 300"
+									,[Saldo USD con BSEI]&gt;100, "&gt; 100 &lt;= 200"
+									,[Saldo USD con BSEI]&gt; 50, "&gt; 50 &lt;= 100"
+									,[Saldo USD con BSEI]&gt; 20, "&gt; 20 &lt;= 50"
+									,[Saldo USD con BSEI]&gt; 10, "&gt; 10 &lt;= 20"
+									,[Saldo USD con BSEI]&gt;  6, "&gt; 6 &lt;=10"
+									                       , "Menor/Igual a 6")	
+													                            
+				
+)</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Captacion</DimensionName>
+                    <HierarchyName>recurso</HierarchyName>
+                    <HierarchyUniqueName>[Captacion].[recurso]</HierarchyUniqueName>
+                    <LevelName>recurso</LevelName>
+                    <UniqueName>[Captacion].[recurso].[recurso]</UniqueName>
+                  </ID>
+                  <ItemCaption>recurso</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Cliente</DimensionName>
+                    <HierarchyName>Clasificacion SIF</HierarchyName>
+                    <HierarchyUniqueName>[Cliente].[Clasificacion SIF]</HierarchyUniqueName>
+                    <LevelName>Clasificacion SIF</LevelName>
+                    <UniqueName>[Cliente].[Clasificacion SIF].[Clasificacion SIF]</UniqueName>
+                  </ID>
+                  <ItemCaption>Clasificacion SIF</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Captacion</DimensionName>
+                    <HierarchyName>productoSinMoneda</HierarchyName>
+                    <HierarchyUniqueName>[Captacion].[productoSinMoneda]</HierarchyUniqueName>
+                    <LevelName>productoSinMoneda</LevelName>
+                    <UniqueName>[Captacion].[productoSinMoneda].[productoSinMoneda]</UniqueName>
+                  </ID>
+                  <ItemCaption>productoSinMoneda</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Cod Agencia</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Cod Agencia]</HierarchyUniqueName>
+                    <LevelName>Cod Agencia</LevelName>
+                    <UniqueName>[PAF].[Cod Agencia].[Cod Agencia]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cod Agencia</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Nombre Agencia</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Nombre Agencia]</HierarchyUniqueName>
+                    <LevelName>Nombre Agencia</LevelName>
+                    <UniqueName>[PAF].[Nombre Agencia].[Nombre Agencia]</UniqueName>
+                  </ID>
+                  <ItemCaption>Nombre Agencia</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo USD con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo USD con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo USD con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Cantidad de Contratos</MeasureName>
+                    <UniqueName>[Measures].[Cantidad de Contratos]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cantidad de Contratos</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo Bs con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo Bs con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo Bs con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo Medio USD</MeasureName>
+                    <UniqueName>[Measures].[Saldo Medio USD]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo Medio USD</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo USD Mes Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo USD Mes Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Cant de Contratos Mes Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Cant de Contratos Mes Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes ANT mes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes ANT mes Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo ANT mes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo ANT mes Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo Medio USD Mes Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo Medio USD Mes Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Rango Saldo Mayor 500]</ColumnName>
+                  </ID>
+                  <ItemCaption>Rango Saldo Mayor 500</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Rango Saldo menor 500]</ColumnName>
+                  </ID>
+                  <ItemCaption>Rango Saldo menor 500</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>DEFINE  
+
+MEASURE 'Saldo Captacion'[Interes Bs] = calculate(SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', [Tasa]*[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))
+
+MEASURE 'Saldo Captacion'[Interes ANT mes Bs] = CALCULATE('Saldo Captacion'[Interes Bs] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+MEASURE 'Saldo Captacion'[Saldo ANT mes Bs] = CALCULATE([Saldo Bs con BSEI] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+
+MEASURE 'Saldo Captacion'[Saldo Medio ANT mes USD] = CALCULATE([Saldo Medio BSEI USD],PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))                                              
+EVALUATE
+ADDCOLUMNS(
+	CALCULATETABLE(
+				SUMMARIZECOLUMNS(Captacion[recurso]
+				                 ,Cliente[Clasificacion SIF]   
+				                 ,Captacion[productoSinMoneda]
+				                 ,PAF[Cod Agencia]
+				                 ,PAF[Nombre Agencia]
+							     ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+								 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+								 ,"Interes Bs",[Interes Bs]
+								 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]	
+								 ,"Saldo Medio USD",[Saldo Medio USD]
+								 
+		                         ,"Saldo USD Mes Anterior",[Saldo USD Mes Anterior con BSEI]
+								 ,"Cant de Contratos Mes Anterior",[Cant de Contratos Mes Anterior con BSEI]
+								 ,"Interes ANT mes Bs",[Interes ANT mes Bs]
+								 ,"Saldo ANT mes Bs", [Saldo ANT mes Bs]  	
+                                 ,"Saldo Medio USD Mes Anterior",[Saldo Medio ANT mes USD]										 
+					    )
+			,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+			,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras","Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+			)
+	,"Rango Saldo Mayor 500",SWITCH(TRUE()
+									,[Saldo USD con BSEI]&gt;2000000, "Mayor 2,000.000"
+									,[Saldo USD con BSEI]&gt;1000000, "&gt;1,000,000 &lt;= 2,000,000"
+									,[Saldo USD con BSEI]&gt; 500000, "&gt;500,000 &lt;= 1,000,000"
+									,[Saldo USD con BSEI]&gt; 200000, "&gt;200,000 &lt;= 500,000"
+									,[Saldo USD con BSEI]&gt; 100000, "&gt;100,000 &lt;= 200,000"
+									,[Saldo USD con BSEI]&gt;  50000, "&gt;50,000 &lt;= 100,000"
+									,[Saldo USD con BSEI]&gt;  30000, "&gt;30,000 &lt;= 50,000"
+									,[Saldo USD con BSEI]&gt;  20000, "&gt;20,000 &lt;= 30,000"
+									,[Saldo USD con BSEI]&gt;  15000, "&gt;15,000 &lt;= 20,000"
+									,[Saldo USD con BSEI]&gt;  10000, "&gt;10,000 &lt;= 15,000"
+									,[Saldo USD con BSEI]&gt;   5000, "&gt;5,000 &lt;= 10,000"
+									,[Saldo USD con BSEI]&gt;   1000, "&gt;1,000 &lt;= 5,000"
+									,[Saldo USD con BSEI]&gt;    500, "&gt; 500 &lt;= 1,000"
+									                             , "Menor/Igual 500")	
+	,"Rango Saldo menor 500",SWITCH(TRUE()
+	                                ,[Saldo USD con BSEI]&gt;500, "Mayor a 500"
+									,[Saldo USD con BSEI]&gt;400, "&gt; 400 &lt;= 500"
+									,[Saldo USD con BSEI]&gt;300, "&gt; 300 &lt;= 400"
+									,[Saldo USD con BSEI]&gt;200, "&gt; 200 &lt;= 300"
+									,[Saldo USD con BSEI]&gt;100, "&gt; 100 &lt;= 200"
+									,[Saldo USD con BSEI]&gt; 50, "&gt; 50 &lt;= 100"
+									,[Saldo USD con BSEI]&gt; 20, "&gt; 20 &lt;= 50"
+									,[Saldo USD con BSEI]&gt; 10, "&gt; 10 &lt;= 20"
+									,[Saldo USD con BSEI]&gt;  6, "&gt; 6 &lt;=10"
+									                       , "Menor/Igual a 6")	
+													                            
+				
+)</Statement>
+            <ParameterDefinitions>
+              <ParameterDefinition>
+                <Name>prFechaDiaria</Name>
+                <DefaultValues>
+                  <DefaultValue>20220619</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaDiaria</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+              </ParameterDefinition>
+            </ParameterDefinitions>
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="recurso">
+        <DataField>Captacion[recurso]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Clasificacion_SIF">
+        <DataField>Cliente[Clasificacion SIF]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="productoSinMoneda">
+        <DataField>Captacion[productoSinMoneda]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Nombre_Agencia">
+        <DataField>PAF[Nombre Agencia]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cod_Agencia">
+        <DataField>PAF[Cod Agencia]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_USD_con_BSEI">
+        <DataField>[Saldo USD con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Cantidad_de_Contratos">
+        <DataField>[Cantidad de Contratos]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Bs_con_BSEI">
+        <DataField>[Saldo Bs con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Medio_USD">
+        <DataField>[Saldo Medio USD]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Interes_Bs">
+        <DataField>[Interes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Rango_Saldo_Mayor_500">
+        <DataField>[Rango Saldo Mayor 500]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_USD_Mes_Anterior">
+        <DataField>[Saldo USD Mes Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Rango_Saldo_menor_500">
+        <DataField>[Rango Saldo menor 500]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cant_de_Contratos_Mes_Anterior">
+        <DataField>[Cant de Contratos Mes Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Interes_ANT_mes_Bs">
+        <DataField>[Interes ANT mes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_ANT_mes_Bs">
+        <DataField>[Saldo ANT mes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Medio_USD_Mes_Anterior">
+        <DataField>[Saldo Medio USD Mes Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

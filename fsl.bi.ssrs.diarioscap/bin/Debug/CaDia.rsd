@@ -1,0 +1,222 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="prFechaDiaria">
+          <DefaultValue>20220619</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>EVALUATE
+ADDCOLUMNS(
+	CALCULATETABLE(
+				SUMMARIZECOLUMNS(PAF[Sigla Sucursal]
+								 ,PAF[Sigla Zonal]
+								 ,PAF[Cod Agencia]
+				                 ,PAF[Nombre Agencia]
+				                 ,Captacion[moneda]
+				                 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+							     ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+								 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+								 
+					    )
+			,Captacion[recurso]="CAH"	    
+			,LASTDATE('Fecha Apertura'[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+			,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras","Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+			)
+	,"Rango Bs",SWITCH(TRUE()
+					,[Saldo Bs con BSEI]&gt;=700, "&gt;=700", "&lt;700")	
+	,"Rango US",SWITCH(TRUE()
+					,[Saldo USD con BSEI]&gt;=100, "&gt;=100", "&lt;100")						
+)</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Sigla Sucursal</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Sigla Sucursal]</HierarchyUniqueName>
+                    <LevelName>Sigla Sucursal</LevelName>
+                    <UniqueName>[PAF].[Sigla Sucursal].[Sigla Sucursal]</UniqueName>
+                  </ID>
+                  <ItemCaption>Sigla Sucursal</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Sigla Zonal</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Sigla Zonal]</HierarchyUniqueName>
+                    <LevelName>Sigla Zonal</LevelName>
+                    <UniqueName>[PAF].[Sigla Zonal].[Sigla Zonal]</UniqueName>
+                  </ID>
+                  <ItemCaption>Sigla Zonal</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Cod Agencia</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Cod Agencia]</HierarchyUniqueName>
+                    <LevelName>Cod Agencia</LevelName>
+                    <UniqueName>[PAF].[Cod Agencia].[Cod Agencia]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cod Agencia</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Nombre Agencia</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Nombre Agencia]</HierarchyUniqueName>
+                    <LevelName>Nombre Agencia</LevelName>
+                    <UniqueName>[PAF].[Nombre Agencia].[Nombre Agencia]</UniqueName>
+                  </ID>
+                  <ItemCaption>Nombre Agencia</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Captacion</DimensionName>
+                    <HierarchyName>moneda</HierarchyName>
+                    <HierarchyUniqueName>[Captacion].[moneda]</HierarchyUniqueName>
+                    <LevelName>moneda</LevelName>
+                    <UniqueName>[Captacion].[moneda].[moneda]</UniqueName>
+                  </ID>
+                  <ItemCaption>moneda</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo Bs con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo Bs con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo Bs con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo USD con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo USD con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo USD con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Cantidad de Contratos</MeasureName>
+                    <UniqueName>[Measures].[Cantidad de Contratos]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cantidad de Contratos</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Rango Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Rango Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Rango US]</ColumnName>
+                  </ID>
+                  <ItemCaption>Rango US</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>EVALUATE
+ADDCOLUMNS(
+	CALCULATETABLE(
+				SUMMARIZECOLUMNS(PAF[Sigla Sucursal]
+								 ,PAF[Sigla Zonal]
+								 ,PAF[Cod Agencia]
+				                 ,PAF[Nombre Agencia]
+				                 ,Captacion[moneda]
+				                 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+							     ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+								 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+								 
+					    )
+			,Captacion[recurso]="CAH"	    
+			,LASTDATE('Fecha Apertura'[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+			,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras","Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+			)
+	,"Rango Bs",SWITCH(TRUE()
+					,[Saldo Bs con BSEI]&gt;=700, "&gt;=700", "&lt;700")	
+	,"Rango US",SWITCH(TRUE()
+					,[Saldo USD con BSEI]&gt;=100, "&gt;=100", "&lt;100")						
+)</Statement>
+            <ParameterDefinitions>
+              <ParameterDefinition>
+                <Name>prFechaDiaria</Name>
+                <DefaultValues>
+                  <DefaultValue>20220619</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaDiaria</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+              </ParameterDefinition>
+            </ParameterDefinitions>
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="Sigla_Sucursal">
+        <DataField>PAF[Sigla Sucursal]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="moneda">
+        <DataField>Captacion[moneda]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Sigla_Zonal">
+        <DataField>PAF[Sigla Zonal]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cod_Agencia">
+        <DataField>PAF[Cod Agencia]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Nombre_Agencia">
+        <DataField>PAF[Nombre Agencia]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Bs_con_BSEI">
+        <DataField>[Saldo Bs con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_USD_con_BSEI">
+        <DataField>[Saldo USD con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Cantidad_de_Contratos">
+        <DataField>[Cantidad de Contratos]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Rango_Bs">
+        <DataField>[Rango Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Rango_US">
+        <DataField>[Rango US]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

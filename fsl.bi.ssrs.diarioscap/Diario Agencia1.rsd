@@ -1,0 +1,661 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="prFechaDiaria">
+          <DefaultValue>20220530</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>DEFINE  
+
+
+MEASURE 'Saldo Captacion'[Interes Bs] = calculate(SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', [Tasa]*[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))
+MEASURE 'Saldo Captacion'[Interes ANT año Bs] = CALCULATE([Interes Bs] ,PREVIOUSYEAR(LASTDATE(Fecha[fecha])))
+MEASURE 'Saldo Captacion'[Saldo ANT año Bs] = CALCULATE([Saldo Bs con BSEI] ,PREVIOUSYEAR(LASTDATE(Fecha[fecha])))  
+MEASURE 'Saldo Captacion'[Interes ANT mes Bs] = CALCULATE([Interes Bs] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+MEASURE 'Saldo Captacion'[Saldo ANT mes Bs] = CALCULATE([Saldo Bs con BSEI] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+MEASURE 'Saldo Captacion'[Interes ANT sem Bs] = CALCULATE([Interes Bs] ,DATEADD(LASTDATE(Fecha[FECHA]),-7,day))
+MEASURE 'Saldo Captacion'[Saldo ANT sem Bs] =  CALCULATE( [Saldo Bs con BSEI], DATEADD(LASTDATE(Fecha[FECHA]),-7,day))     
+MEASURE 'Saldo Captacion'[Interes ANT dia Bs] = CALCULATE([Interes Bs] ,PREVIOUSDAY(LASTDATE(Fecha[fecha])))    
+MEASURE 'Saldo Captacion'[Saldo ANT dia Bs] =  CALCULATE( [Saldo Bs con BSEI],PREVIOUSDAY(LASTDATE(Fecha[fecha])))    
+
+MEASURE 'Saldo Captacion'[Saldo ANT sem USD] =  CALCULATE( [Saldo USD con BSEI], DATEADD(LASTDATE(Fecha[FECHA]),-7,day))     
+MEASURE 'Saldo Captacion'[Saldo ANT dia USD] =  CALCULATE( [Saldo USD con BSEI],PREVIOUSDAY(LASTDATE(Fecha[fecha])))    
+
+EVALUATE
+union(
+  ADDCOLUMNS(
+   CALCULATETABLE(
+        SUMMARIZECOLUMNS(Fecha[Fecha]
+                         ,PAF[Nombre Agencia]
+                         ,PAF[Cod Agencia]
+                         ,filter(fecha,
+                                (Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; month(Fecha[fecha])=12 &amp;&amp; YEAR (Fecha[fecha] ) &gt;= value(Mid(@prFechaDiaria,1,4))-3) --saldo anual de los ultimos 3 años
+                                ||((Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; year(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4))) &amp;&amp; --saldo mensual deL año ACTUAL
+                                fecha[fecha]&lt;= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+                                
+                                ||(WEEKNUM(fecha[fecha],2) &gt;= weeknum(DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)),2)-1 &amp;&amp; --saldo diario ultimas 2 semanas
+                                fecha[fecha]&lt;= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)) &amp;&amp;
+                               -- weekday(fecha[fecha])&lt;&gt;1 &amp;&amp;
+                                YEAR ( Fecha[fecha] ) = value(Mid(@prFechaDiaria,1,4))))
+                                
+                                
+                    
+                         ,"Saldo USD con BSEI", [Saldo USD con BSEI]/1000
+                         ,"Cantidad de Contratos",[Cantidad de Contratos Ult. Dia con BSEI]
+                        ,"Cantidad de Clientes",[Cantidad de Clientes Ultimo Dia con BSEI]
+                         ,"Interes Bs",[Interes Bs]
+                         ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]                         
+                         
+                )
+                ,not (ISBLANK(Producto[Captacion]))
+                ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras",
+                                                   "Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}                            
+        )
+
+     ,"Saldo USD Año Anterior", 0
+     ,"Cant de Contratos Año Anterior",0
+     ,"Interes ANT año Bs",0
+	 ,"Saldo ANT año Bs", 0
+    
+     ,"Saldo USD Mes Anterior",0
+	 ,"Cant de Contratos Mes Anterior",0
+	 ,"Interes ANT mes Bs",0
+	 ,"Saldo ANT mes Bs", 0
+     
+     ,"Saldo USD Semana Anterior",0
+     ,"Cant de Contratos Semana",0
+	 ,"Interes ANT sem Bs",0
+	 ,"Saldo ANT sem Bs", 0
+	 
+     ,"Saldo USD dia Ant", 0 
+     ,"Cant de Contratos dia Anterior",0
+	 ,"Interes ANT dia Bs",0
+	 ,"Saldo ANT dia Bs" ,0
+	 
+	 ,"Clientes Año Anterior",0
+	 ,"Clientes Semana Anterior",0
+	 ,"Clientes Mes Anterior",0
+	 ,"Clientes Anterior",0
+    ,"RANGO","SALDO"
+    ,"fecha variacion año",date(1900,01,01)    
+    ,"fecha variacion mes",date(1900,01,01)    
+    ,"fecha variacion sem",date(1900,01,01)    
+    ,"fecha variacion dia",date(1900,01,01)    
+    )
+,
+   ADDCOLUMNS(
+   CALCULATETABLE(
+        SUMMARIZECOLUMNS(Fecha[Fecha]
+                        ,PAF[Nombre Agencia]
+                        ,PAF[Cod Agencia]
+                         ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+                         ,"Saldo USD con BSEI", [Saldo USD con BSEI]/1000
+                         ,"Cantidad de Contratos",[Cantidad de Contratos Ult. Dia con BSEI]
+                         ,"Cantidad de Clientes",[Cantidad de Clientes Ultimo Dia con BSEI]
+                         ,"Interes Bs",[Interes Bs]
+                         ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+                        
+                         ,"Saldo USD Año Anterior", [Saldo USD Año Anterior con BSEI]/1000
+                         ,"Cant de Contratos Año Anterior",[Cant de Contratos Año Anterior con BSEI] 
+                         ,"Interes ANT año Bs",[Interes ANT año Bs]
+						 ,"Saldo ANT año Bs", [Saldo ANT año Bs]
+                        
+                         ,"Saldo USD Mes Anterior",[Saldo USD Mes Anterior con BSEI]/1000
+						 ,"Cant de Contratos Mes Anterior",[Cant de Contratos Mes Anterior con BSEI]
+						 ,"Interes ANT mes Bs",[Interes ANT mes Bs]
+						 ,"Saldo ANT mes Bs", [Saldo ANT mes Bs] 
+                         
+                         ,"Saldo USD Semana Anterior",[Saldo ANT sem USD]/1000  --[Saldo USD Semana Anterior con BSEI]/1000
+                         ,"Cant de Contratos Semana",[Cant de Contratos Semana Anterior con BSEI]
+						 ,"Interes ANT sem Bs",[Interes ANT sem Bs]
+						 ,"Saldo ANT sem Bs", [Saldo ANT sem Bs] 
+						 
+                         ,"Saldo USD dia Ant",  [Saldo ANT dia USD]/1000 --[Saldo USD dia Anterior con BSEI]/1000
+                         ,"Cant de Contratos dia Anterior",[Cant de Contratos Anterior con BSEI]
+						 ,"Interes ANT dia Bs",[Interes ANT dia Bs]
+						 ,"Saldo ANT dia Bs" ,[Saldo ANT dia Bs] 
+						 
+						 ,"Clientes Año Anterior",[Cant de Clientes Año Anterior con BSEI]
+						 ,"Clientes Semana Anterior",[Cant de Clientes Semana Anterior con BSEI]
+						 ,"Clientes Mes Anterior",[Cant de Clientes Mes Anterior con BSEI]
+						 ,"Clientes Anterior",[Cant de Clientes Anterior con BSEI]
+                )
+                ,not (ISBLANK(Producto[Captacion]))
+                ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras",
+                                                   "Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}                            
+                
+                
+        )
+        ,"RANGO","VARIACION"
+        ,"fecha variacion año",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)  
+        ,"fecha variacion mes",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+        ,"fecha variacion sem",DATEADD(Fecha[fecha],-7,day)   
+        ,"fecha variacion dia",PREVIOUSDAY(LASTDATE(Fecha[fecha]))
+        )
+     )</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>fecha</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[fecha]</HierarchyUniqueName>
+                    <LevelName>fecha</LevelName>
+                    <UniqueName>[Fecha].[fecha].[fecha]</UniqueName>
+                  </ID>
+                  <ItemCaption>fecha</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Nombre Agencia</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Nombre Agencia]</HierarchyUniqueName>
+                    <LevelName>Nombre Agencia</LevelName>
+                    <UniqueName>[PAF].[Nombre Agencia].[Nombre Agencia]</UniqueName>
+                  </ID>
+                  <ItemCaption>Nombre Agencia</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Cod Agencia</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Cod Agencia]</HierarchyUniqueName>
+                    <LevelName>Cod Agencia</LevelName>
+                    <UniqueName>[PAF].[Cod Agencia].[Cod Agencia]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cod Agencia</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo USD con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo USD con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo USD con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Cantidad de Contratos</MeasureName>
+                    <UniqueName>[Measures].[Cantidad de Contratos]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cantidad de Contratos</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Cantidad de Clientes</MeasureName>
+                    <UniqueName>[Measures].[Cantidad de Clientes]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cantidad de Clientes</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo Bs con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo Bs con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo Bs con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo USD Año Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo USD Año Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Cant de Contratos Año Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Cant de Contratos Año Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes ANT año Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes ANT año Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo ANT año Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo ANT año Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo USD Mes Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo USD Mes Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Cant de Contratos Mes Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Cant de Contratos Mes Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes ANT mes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes ANT mes Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo ANT mes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo ANT mes Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo USD Semana Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo USD Semana Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Cant de Contratos Semana]</ColumnName>
+                  </ID>
+                  <ItemCaption>Cant de Contratos Semana</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes ANT sem Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes ANT sem Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo ANT sem Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo ANT sem Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo USD dia Ant]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo USD dia Ant</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Cant de Contratos dia Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Cant de Contratos dia Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes ANT dia Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes ANT dia Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo ANT dia Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo ANT dia Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Clientes Año Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Clientes Año Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Clientes Semana Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Clientes Semana Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Clientes Mes Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Clientes Mes Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Clientes Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Clientes Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[RANGO]</ColumnName>
+                  </ID>
+                  <ItemCaption>RANGO</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha variacion año]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha variacion año</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha variacion mes]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha variacion mes</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha variacion sem]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha variacion sem</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha variacion dia]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha variacion dia</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>DEFINE  
+
+
+MEASURE 'Saldo Captacion'[Interes Bs] = calculate(SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', [Tasa]*[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))
+MEASURE 'Saldo Captacion'[Interes ANT año Bs] = CALCULATE([Interes Bs] ,PREVIOUSYEAR(LASTDATE(Fecha[fecha])))
+MEASURE 'Saldo Captacion'[Saldo ANT año Bs] = CALCULATE([Saldo Bs con BSEI] ,PREVIOUSYEAR(LASTDATE(Fecha[fecha])))  
+MEASURE 'Saldo Captacion'[Interes ANT mes Bs] = CALCULATE([Interes Bs] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+MEASURE 'Saldo Captacion'[Saldo ANT mes Bs] = CALCULATE([Saldo Bs con BSEI] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+MEASURE 'Saldo Captacion'[Interes ANT sem Bs] = CALCULATE([Interes Bs] ,DATEADD(LASTDATE(Fecha[FECHA]),-7,day))
+MEASURE 'Saldo Captacion'[Saldo ANT sem Bs] =  CALCULATE( [Saldo Bs con BSEI], DATEADD(LASTDATE(Fecha[FECHA]),-7,day))     
+MEASURE 'Saldo Captacion'[Interes ANT dia Bs] = CALCULATE([Interes Bs] ,PREVIOUSDAY(LASTDATE(Fecha[fecha])))    
+MEASURE 'Saldo Captacion'[Saldo ANT dia Bs] =  CALCULATE( [Saldo Bs con BSEI],PREVIOUSDAY(LASTDATE(Fecha[fecha])))    
+
+MEASURE 'Saldo Captacion'[Saldo ANT sem USD] =  CALCULATE( [Saldo USD con BSEI], DATEADD(LASTDATE(Fecha[FECHA]),-7,day))     
+MEASURE 'Saldo Captacion'[Saldo ANT dia USD] =  CALCULATE( [Saldo USD con BSEI],PREVIOUSDAY(LASTDATE(Fecha[fecha])))    
+
+EVALUATE
+union(
+  ADDCOLUMNS(
+   CALCULATETABLE(
+        SUMMARIZECOLUMNS(Fecha[Fecha]
+                         ,PAF[Nombre Agencia]
+                         ,PAF[Cod Agencia]
+                         ,filter(fecha,
+                                (Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; month(Fecha[fecha])=12 &amp;&amp; YEAR (Fecha[fecha] ) &gt;= value(Mid(@prFechaDiaria,1,4))-3) --saldo anual de los ultimos 3 años
+                                ||((Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; year(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4))) &amp;&amp; --saldo mensual deL año ACTUAL
+                                fecha[fecha]&lt;= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+                                
+                                ||(WEEKNUM(fecha[fecha],2) &gt;= weeknum(DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)),2)-1 &amp;&amp; --saldo diario ultimas 2 semanas
+                                fecha[fecha]&lt;= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)) &amp;&amp;
+                               -- weekday(fecha[fecha])&lt;&gt;1 &amp;&amp;
+                                YEAR ( Fecha[fecha] ) = value(Mid(@prFechaDiaria,1,4))))
+                                
+                                
+                    
+                         ,"Saldo USD con BSEI", [Saldo USD con BSEI]/1000
+                         ,"Cantidad de Contratos",[Cantidad de Contratos Ult. Dia con BSEI]
+                        ,"Cantidad de Clientes",[Cantidad de Clientes Ultimo Dia con BSEI]
+                         ,"Interes Bs",[Interes Bs]
+                         ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]                         
+                         
+                )
+                ,not (ISBLANK(Producto[Captacion]))
+                ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras",
+                                                   "Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}                            
+        )
+
+     ,"Saldo USD Año Anterior", 0
+     ,"Cant de Contratos Año Anterior",0
+     ,"Interes ANT año Bs",0
+	 ,"Saldo ANT año Bs", 0
+    
+     ,"Saldo USD Mes Anterior",0
+	 ,"Cant de Contratos Mes Anterior",0
+	 ,"Interes ANT mes Bs",0
+	 ,"Saldo ANT mes Bs", 0
+     
+     ,"Saldo USD Semana Anterior",0
+     ,"Cant de Contratos Semana",0
+	 ,"Interes ANT sem Bs",0
+	 ,"Saldo ANT sem Bs", 0
+	 
+     ,"Saldo USD dia Ant", 0 
+     ,"Cant de Contratos dia Anterior",0
+	 ,"Interes ANT dia Bs",0
+	 ,"Saldo ANT dia Bs" ,0
+	 
+	 ,"Clientes Año Anterior",0
+	 ,"Clientes Semana Anterior",0
+	 ,"Clientes Mes Anterior",0
+	 ,"Clientes Anterior",0
+    ,"RANGO","SALDO"
+    ,"fecha variacion año",date(1900,01,01)    
+    ,"fecha variacion mes",date(1900,01,01)    
+    ,"fecha variacion sem",date(1900,01,01)    
+    ,"fecha variacion dia",date(1900,01,01)    
+    )
+,
+   ADDCOLUMNS(
+   CALCULATETABLE(
+        SUMMARIZECOLUMNS(Fecha[Fecha]
+                        ,PAF[Nombre Agencia]
+                        ,PAF[Cod Agencia]
+                         ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+                         ,"Saldo USD con BSEI", [Saldo USD con BSEI]/1000
+                         ,"Cantidad de Contratos",[Cantidad de Contratos Ult. Dia con BSEI]
+                         ,"Cantidad de Clientes",[Cantidad de Clientes Ultimo Dia con BSEI]
+                         ,"Interes Bs",[Interes Bs]
+                         ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+                        
+                         ,"Saldo USD Año Anterior", [Saldo USD Año Anterior con BSEI]/1000
+                         ,"Cant de Contratos Año Anterior",[Cant de Contratos Año Anterior con BSEI] 
+                         ,"Interes ANT año Bs",[Interes ANT año Bs]
+						 ,"Saldo ANT año Bs", [Saldo ANT año Bs]
+                        
+                         ,"Saldo USD Mes Anterior",[Saldo USD Mes Anterior con BSEI]/1000
+						 ,"Cant de Contratos Mes Anterior",[Cant de Contratos Mes Anterior con BSEI]
+						 ,"Interes ANT mes Bs",[Interes ANT mes Bs]
+						 ,"Saldo ANT mes Bs", [Saldo ANT mes Bs] 
+                         
+                         ,"Saldo USD Semana Anterior",[Saldo ANT sem USD]/1000  --[Saldo USD Semana Anterior con BSEI]/1000
+                         ,"Cant de Contratos Semana",[Cant de Contratos Semana Anterior con BSEI]
+						 ,"Interes ANT sem Bs",[Interes ANT sem Bs]
+						 ,"Saldo ANT sem Bs", [Saldo ANT sem Bs] 
+						 
+                         ,"Saldo USD dia Ant",  [Saldo ANT dia USD]/1000 --[Saldo USD dia Anterior con BSEI]/1000
+                         ,"Cant de Contratos dia Anterior",[Cant de Contratos Anterior con BSEI]
+						 ,"Interes ANT dia Bs",[Interes ANT dia Bs]
+						 ,"Saldo ANT dia Bs" ,[Saldo ANT dia Bs] 
+						 
+						 ,"Clientes Año Anterior",[Cant de Clientes Año Anterior con BSEI]
+						 ,"Clientes Semana Anterior",[Cant de Clientes Semana Anterior con BSEI]
+						 ,"Clientes Mes Anterior",[Cant de Clientes Mes Anterior con BSEI]
+						 ,"Clientes Anterior",[Cant de Clientes Anterior con BSEI]
+                )
+                ,not (ISBLANK(Producto[Captacion]))
+                ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras",
+                                                   "Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}                            
+                
+                
+        )
+        ,"RANGO","VARIACION"
+        ,"fecha variacion año",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)  
+        ,"fecha variacion mes",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+        ,"fecha variacion sem",DATEADD(Fecha[fecha],-7,day)   
+        ,"fecha variacion dia",PREVIOUSDAY(LASTDATE(Fecha[fecha]))
+        )
+     )</Statement>
+            <ParameterDefinitions>
+              <ParameterDefinition>
+                <Name>prFechaDiaria</Name>
+                <DefaultValues>
+                  <DefaultValue>20220530</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaDiaria</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+              </ParameterDefinition>
+            </ParameterDefinitions>
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="fecha">
+        <DataField>Fecha[fecha]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Nombre_Agencia">
+        <DataField>PAF[Nombre Agencia]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cod_Agencia">
+        <DataField>PAF[Cod Agencia]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_USD_con_BSEI">
+        <DataField>[Saldo USD con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Cantidad_de_Contratos">
+        <DataField>[Cantidad de Contratos]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Cantidad_de_Clientes">
+        <DataField>[Cantidad de Clientes]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Bs_con_BSEI">
+        <DataField>[Saldo Bs con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="RANGO">
+        <DataField>[RANGO]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Interes_Bs">
+        <DataField>[Interes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_USD_Año_Anterior">
+        <DataField>[Saldo USD Año Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cant_de_Contratos_Año_Anterior">
+        <DataField>[Cant de Contratos Año Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Interes_ANT_año_Bs">
+        <DataField>[Interes ANT año Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_ANT_año_Bs">
+        <DataField>[Saldo ANT año Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_USD_Mes_Anterior">
+        <DataField>[Saldo USD Mes Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cant_de_Contratos_Mes_Anterior">
+        <DataField>[Cant de Contratos Mes Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Interes_ANT_mes_Bs">
+        <DataField>[Interes ANT mes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_ANT_mes_Bs">
+        <DataField>[Saldo ANT mes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_USD_Semana_Anterior">
+        <DataField>[Saldo USD Semana Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cant_de_Contratos_Semana">
+        <DataField>[Cant de Contratos Semana]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Interes_ANT_sem_Bs">
+        <DataField>[Interes ANT sem Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_USD_dia_Ant">
+        <DataField>[Saldo USD dia Ant]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_ANT_sem_Bs">
+        <DataField>[Saldo ANT sem Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cant_de_Contratos_dia_Anterior">
+        <DataField>[Cant de Contratos dia Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Interes_ANT_dia_Bs">
+        <DataField>[Interes ANT dia Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_ANT_dia_Bs">
+        <DataField>[Saldo ANT dia Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Clientes_Año_Anterior">
+        <DataField>[Clientes Año Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Clientes_Semana_Anterior">
+        <DataField>[Clientes Semana Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Clientes_Mes_Anterior">
+        <DataField>[Clientes Mes Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Clientes_Anterior">
+        <DataField>[Clientes Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_año">
+        <DataField>[fecha variacion año]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_mes">
+        <DataField>[fecha variacion mes]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_sem">
+        <DataField>[fecha variacion sem]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_dia">
+        <DataField>[fecha variacion dia]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

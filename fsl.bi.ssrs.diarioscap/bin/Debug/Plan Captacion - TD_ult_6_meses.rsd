@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCLIENTES</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="prFechaDiaria">
+          <DefaultValue>20220317</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>EVALUATE
+      SUMMARIZECOLUMNS(
+       Fecha[fecha]
+       ,filter(fecha,
+			        (Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; month(Fecha[fecha])=12 &amp;&amp; YEAR (Fecha[fecha] ) &gt;= value(Mid(@prFechaDiaria,1,4))-1) --saldo anual del ultimo año
+			        ||(Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; year(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4)) &amp;&amp; Fecha[id]&lt;value(@prFechaDiaria)) --saldo mensual deL año ACTUAL
+			        ||(YEAR(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4))-1 &amp;&amp; month(Fecha[fecha])=value(MID(@prFechaDiaria,5,2)) &amp;&amp; day(fecha[fecha])=VALUE(MID(@prFechaDiaria,7,2))) --misma fecha año anterior
+			        || Fecha[fecha]&gt;DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2))-7 &amp;&amp; Fecha[id]&lt;=value(@prFechaDiaria) --ultimos 7 dias
+			        )
+      , "TDs Utilizadas 6 meses", CALCULATE(sum('Clientes Activos'[TDB]), LASTDATE(Fecha[fecha]))
+)</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>fecha</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[fecha]</HierarchyUniqueName>
+                    <LevelName>fecha</LevelName>
+                    <UniqueName>[Fecha].[fecha].[fecha]</UniqueName>
+                  </ID>
+                  <ItemCaption>fecha</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[TDs Utilizadas 6 meses]</ColumnName>
+                  </ID>
+                  <ItemCaption>TDs Utilizadas 6 meses</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Clientes</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>EVALUATE
+      SUMMARIZECOLUMNS(
+       Fecha[fecha]
+       ,filter(fecha,
+			        (Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; month(Fecha[fecha])=12 &amp;&amp; YEAR (Fecha[fecha] ) &gt;= value(Mid(@prFechaDiaria,1,4))-1) --saldo anual del ultimo año
+			        ||(Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; year(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4)) &amp;&amp; Fecha[id]&lt;value(@prFechaDiaria)) --saldo mensual deL año ACTUAL
+			        ||(YEAR(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4))-1 &amp;&amp; month(Fecha[fecha])=value(MID(@prFechaDiaria,5,2)) &amp;&amp; day(fecha[fecha])=VALUE(MID(@prFechaDiaria,7,2))) --misma fecha año anterior
+			        || Fecha[fecha]&gt;DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2))-7 &amp;&amp; Fecha[id]&lt;=value(@prFechaDiaria) --ultimos 7 dias
+			        )
+      , "TDs Utilizadas 6 meses", CALCULATE(sum('Clientes Activos'[TDB]), LASTDATE(Fecha[fecha]))
+)</Statement>
+            <ParameterDefinitions>
+              <ParameterDefinition>
+                <Name>prFechaDiaria</Name>
+                <DefaultValues>
+                  <DefaultValue>20220317</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaDiaria</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+              </ParameterDefinition>
+            </ParameterDefinitions>
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="fecha">
+        <DataField>Fecha[fecha]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="TDs_Utilizadas_6_meses">
+        <DataField>[TDs Utilizadas 6 meses]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>SVRDBBI01</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="@prFechaDiaria">
+          <DefaultValue>20220731</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:UserDefined>true</rd:UserDefined>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>declare @fecha as smalldatetime
+set @fecha= cast(@prFechaDiaria as smalldatetime)
+
+select a.fecha,b.grupobanca,b.Numero_clientes_Activos,b.Clientes_FassilNet,b.TDs_Utilizadas_6_meses,b.tarjetas_activas,
+       fecha_variacion_año=cast('31/12/'+ str(YEAR(@fecha)-1) as smalldatetime),
+       fecha_variacion_mes=EOMONTH(@fecha,-1),
+       fecha_variacion_ant=@fecha-1,
+       id_anioant=CAST(cast('31/12/'+ str(YEAR(@fecha)-1) as smalldatetime) as int),
+       id_mesant=cast(cast(EOMONTH(@fecha,-1) as smalldatetime) as int),
+       id_diaant=CAST((@fecha-1) as int),
+       id=CAST(cast(a.fecha as smalldatetime) as int)
+
+from dw.d_Fecha a
+inner join [cli].[Indicadores_clientes] b
+    on b.fechafk=a.id
+where fecha='31/12/'+ str(YEAR(@fecha)-1)
+or (año =YEAR(@fecha) 
+   and esFindeMes=1 
+   and fecha&lt;=@fecha)
+or (año =YEAR(@fecha)-1 
+   and Mes=MONTH(@fecha) 
+   and Dia=DAY(@fecha))
+or (fecha between @fecha-6 
+   and @fecha)</CommandText>
+      <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
+    </Query>
+    <Fields>
+      <Field Name="fecha">
+        <DataField>fecha</DataField>
+        <rd:TypeName>System.DateTime</rd:TypeName>
+      </Field>
+      <Field Name="grupobanca">
+        <DataField>grupobanca</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Numero_clientes_Activos">
+        <DataField>Numero_clientes_Activos</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Clientes_FassilNet">
+        <DataField>Clientes_FassilNet</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="TDs_Utilizadas_6_meses">
+        <DataField>TDs_Utilizadas_6_meses</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="tarjetas_activas">
+        <DataField>tarjetas_activas</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_año">
+        <DataField>fecha_variacion_año</DataField>
+        <rd:TypeName>System.DateTime</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_mes">
+        <DataField>fecha_variacion_mes</DataField>
+        <rd:TypeName>System.DateTime</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_ant">
+        <DataField>fecha_variacion_ant</DataField>
+        <rd:TypeName>System.DateTime</rd:TypeName>
+      </Field>
+      <Field Name="id_anioant">
+        <DataField>id_anioant</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="id_mesant">
+        <DataField>id_mesant</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="id_diaant">
+        <DataField>id_diaant</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="id">
+        <DataField>id</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

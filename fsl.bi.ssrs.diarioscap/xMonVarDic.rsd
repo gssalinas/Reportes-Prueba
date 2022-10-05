@@ -1,0 +1,555 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="prFechaDiaria">
+          <DefaultValue>20220602</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>DEFINE  
+
+---- MODEL MEASURES END ----
+
+MEASURE 'Saldo Captacion'[Interes Bs] = calculate(SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', [Tasa]*[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))
+MEASURE 'Saldo Captacion'[Saldo ANT año USD] = CALCULATE([Saldo USD con BSEI],PREVIOUSYEAR(LASTDATE(Fecha[fecha])))
+MEASURE 'Saldo Captacion'[Contrato ANT año] = CALCULATE([Cantidad de Contratos con BSEI],PREVIOUSYEAR(LASTDATE(Fecha[fecha])))
+MEASURE 'Saldo Captacion'[Interes ANT año Bs] = CALCULATE('Saldo Captacion'[Interes Bs] ,PREVIOUSYEAR(LASTDATE(Fecha[fecha])))
+MEASURE 'Saldo Captacion'[Saldo ANT año Bs] = CALCULATE([Saldo Bs con BSEI] ,PREVIOUSYEAR(LASTDATE(Fecha[fecha])))
+
+EVALUATE
+UNION(
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+			         ,Fecha[Fecha]
+					 ,Fecha[mes]
+					 ,Captacion[Sigla Moneda]
+                     ,Producto[Captacion]
+					 ,Captacion[productoSinMoneda]
+					 
+					 )
+			 ,"Var Saldo USD con BSEI", [Saldo USD con BSEI]- 'Saldo Captacion'[Saldo ANT año USD] 
+			 ,"Var Contratos",[Cantidad de Contratos con BSEI]-'Saldo Captacion'[Contrato ANT año]
+			 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+			 ,"Interes ANT año Bs",'Saldo Captacion'[Interes ANT año Bs] 
+			 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			 ,"Saldo ANT año Bs",'Saldo Captacion'[Saldo ANT año Bs]
+			 ,"CONCEPTO","DETALLE PUBLICO"		 
+			 ,"ORDEN",1    
+			 )
+        ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+		,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales"}
+		)
+,
+
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+					 ,Fecha[Fecha]
+					 ,Fecha[mes]
+					 ,Captacion[Sigla Moneda]
+					 )
+			,"Captacion","TOTAL PUBLICO"
+			,"productoSinMoneda","TOTAL PUBLICO"		 
+			 ,"Var Saldo USD con BSEI", [Saldo USD con BSEI]- 'Saldo Captacion'[Saldo ANT año USD] 
+			 ,"Var Contratos",[Cantidad de Contratos con BSEI]-'Saldo Captacion'[Contrato ANT año]
+			 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+			 ,"Interes ANT año Bs",'Saldo Captacion'[Interes ANT año Bs] 
+			 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			 ,"Saldo ANT año Bs",'Saldo Captacion'[Saldo ANT año Bs]
+			 ,"CONCEPTO","TOTAL PUBLICO"
+			 ,"ORDEN",2
+			 )
+	    ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+		,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica"}
+		)
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+				     ,Fecha[Fecha]
+					 ,Fecha[mes]
+					 ,Captacion[Sigla Moneda]
+					 )
+			,"Captacion","TOTAL INST."
+			,"productoSinMoneda","TOTAL INST."		 
+			 ,"Var Saldo USD con BSEI", [Saldo USD con BSEI]- 'Saldo Captacion'[Saldo ANT año USD] 
+			 ,"Var Contratos",[Cantidad de Contratos con BSEI]-'Saldo Captacion'[Contrato ANT año]
+			 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+			 ,"Interes ANT año Bs",'Saldo Captacion'[Interes ANT año Bs] 
+			 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			 ,"Saldo ANT año Bs",'Saldo Captacion'[Saldo ANT año Bs]
+			 ,"CONCEPTO","TOTAL INST."
+			 ,"ORDEN",3
+			 )
+	    ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+		,Cliente[Clasificacion SIF] in {"Institucionales"}
+		)
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+				     ,Fecha[Fecha]
+					 ,Fecha[mes]
+					 ,Captacion[Sigla Moneda]
+					 )
+			,"Captacion","TOTAL PUB+INST."
+			,"productoSinMoneda","TOTAL PUB+INST."		 
+			 ,"Var Saldo USD con BSEI", [Saldo USD con BSEI]- 'Saldo Captacion'[Saldo ANT año USD] 
+			 ,"Var Contratos",[Cantidad de Contratos con BSEI]-'Saldo Captacion'[Contrato ANT año]
+			 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+			 ,"Interes ANT año Bs",'Saldo Captacion'[Interes ANT año Bs] 
+			 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			 ,"Saldo ANT año Bs",'Saldo Captacion'[Saldo ANT año Bs]
+			 ,"CONCEPTO","TOTAL PUB+INST."
+			 ,"ORDEN",3
+			 )
+	    ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+		,Cliente[Clasificacion SIF] in {"Institucionales","Persona Natural","Persona Juridica"}
+		)		
+,
+   ADDCOLUMNS(
+   CALCULATETABLE(
+		SUMMARIZECOLUMNS(Fecha[Fecha]
+						 ,Fecha[mes]
+						 ,Captacion[Sigla Moneda]
+						 ,Fecha[año]
+					     ,Captacion[productoSinMoneda]
+						 ,"Var Saldo USD con BSEI", [Saldo USD con BSEI]- 'Saldo Captacion'[Saldo ANT año USD] 
+						 ,"Var Contratos",[Cantidad de Contratos con BSEI]-'Saldo Captacion'[Contrato ANT año]
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+						 ,"Interes ANT año Bs",'Saldo Captacion'[Interes ANT año Bs] 
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+						 ,"Saldo ANT año Bs",'Saldo Captacion'[Saldo ANT año Bs]
+			    )
+			    ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+		        ,Cliente[Clasificacion SIF] in {"Entidades Financieras"}
+		)
+		 
+	    ,"CONCEPTO","DEPOSITOS ENTID. FINANC."
+	    ,"ORDEN",4   
+		)
+	
+,
+   ADDCOLUMNS(
+   CALCULATETABLE(
+		SUMMARIZECOLUMNS(Fecha[Fecha]
+						 ,Fecha[mes]
+						 ,Captacion[Sigla Moneda]
+                         ,Fecha[año]
+						 ,Cliente[Clasificacion SIF]
+						 ,"Var Saldo USD con BSEI", [Saldo USD con BSEI]- 'Saldo Captacion'[Saldo ANT año USD] 
+						 ,"Var Contratos",[Cantidad de Contratos con BSEI]-'Saldo Captacion'[Contrato ANT año]
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+						 ,"Interes ANT año Bs",'Saldo Captacion'[Interes ANT año Bs] 
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+						 ,"Saldo ANT año Bs",'Saldo Captacion'[Saldo ANT año Bs]					 
+						 
+			    )
+			    ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+		        ,Cliente[Clasificacion SIF] in  {"Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+		)
+		
+		 ,"CONCEPTO","DEPOSITOS ENTID. FINANC."
+		 ,"ORDEN",5    
+		)
+,
+   ADDCOLUMNS(
+   CALCULATETABLE(
+		SUMMARIZECOLUMNS(Fecha[Fecha]
+						 ,Fecha[mes]
+						 ,Captacion[Sigla Moneda]
+						 ,Fecha[dia]
+						 ,Fecha[año]
+						 ,"Var Saldo USD con BSEI", [Saldo USD con BSEI]- 'Saldo Captacion'[Saldo ANT año USD] 
+						 ,"Var Contratos",[Cantidad de Contratos con BSEI]-'Saldo Captacion'[Contrato ANT año]
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+						 ,"Interes ANT año Bs",'Saldo Captacion'[Interes ANT año Bs] 
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+						 ,"Saldo ANT año Bs",'Saldo Captacion'[Saldo ANT año Bs]					 
+						 
+			    )
+			    ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+		       -- ,Cliente[Clasificacion SIF] in  {"Entidades Financieras","Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+		)
+		 ,"CONCEPTO","TOTAL"
+		 ,"ORDEN",6   
+		)		
+)		
+
+</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>fecha</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[fecha]</HierarchyUniqueName>
+                    <LevelName>fecha</LevelName>
+                    <UniqueName>[Fecha].[fecha].[fecha]</UniqueName>
+                  </ID>
+                  <ItemCaption>fecha</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>mes</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[mes]</HierarchyUniqueName>
+                    <LevelName>mes</LevelName>
+                    <UniqueName>[Fecha].[mes].[mes]</UniqueName>
+                  </ID>
+                  <ItemCaption>mes</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Captacion</DimensionName>
+                    <HierarchyName>Sigla Moneda</HierarchyName>
+                    <HierarchyUniqueName>[Captacion].[Sigla Moneda]</HierarchyUniqueName>
+                    <LevelName>Sigla Moneda</LevelName>
+                    <UniqueName>[Captacion].[Sigla Moneda].[Sigla Moneda]</UniqueName>
+                  </ID>
+                  <ItemCaption>Sigla Moneda</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Producto</DimensionName>
+                    <HierarchyName>Captacion</HierarchyName>
+                    <HierarchyUniqueName>[Producto].[Captacion]</HierarchyUniqueName>
+                    <LevelName>Captacion</LevelName>
+                    <UniqueName>[Producto].[Captacion].[Captacion]</UniqueName>
+                  </ID>
+                  <ItemCaption>Captacion</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Captacion</DimensionName>
+                    <HierarchyName>productoSinMoneda</HierarchyName>
+                    <HierarchyUniqueName>[Captacion].[productoSinMoneda]</HierarchyUniqueName>
+                    <LevelName>productoSinMoneda</LevelName>
+                    <UniqueName>[Captacion].[productoSinMoneda].[productoSinMoneda]</UniqueName>
+                  </ID>
+                  <ItemCaption>productoSinMoneda</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo Bs con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo Bs con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo Bs con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Var Saldo USD con BSEI]</ColumnName>
+                  </ID>
+                  <ItemCaption>Var Saldo USD con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Var Contratos]</ColumnName>
+                  </ID>
+                  <ItemCaption>Var Contratos</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes ANT año Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes ANT año Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo ANT año Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo ANT año Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[CONCEPTO]</ColumnName>
+                  </ID>
+                  <ItemCaption>CONCEPTO</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[ORDEN]</ColumnName>
+                  </ID>
+                  <ItemCaption>ORDEN</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>DEFINE  
+
+---- MODEL MEASURES END ----
+
+MEASURE 'Saldo Captacion'[Interes Bs] = calculate(SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', [Tasa]*[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))
+MEASURE 'Saldo Captacion'[Saldo ANT año USD] = CALCULATE([Saldo USD con BSEI],PREVIOUSYEAR(LASTDATE(Fecha[fecha])))
+MEASURE 'Saldo Captacion'[Contrato ANT año] = CALCULATE([Cantidad de Contratos con BSEI],PREVIOUSYEAR(LASTDATE(Fecha[fecha])))
+MEASURE 'Saldo Captacion'[Interes ANT año Bs] = CALCULATE('Saldo Captacion'[Interes Bs] ,PREVIOUSYEAR(LASTDATE(Fecha[fecha])))
+MEASURE 'Saldo Captacion'[Saldo ANT año Bs] = CALCULATE([Saldo Bs con BSEI] ,PREVIOUSYEAR(LASTDATE(Fecha[fecha])))
+
+EVALUATE
+UNION(
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+			         ,Fecha[Fecha]
+					 ,Fecha[mes]
+					 ,Captacion[Sigla Moneda]
+                     ,Producto[Captacion]
+					 ,Captacion[productoSinMoneda]
+					 
+					 )
+			 ,"Var Saldo USD con BSEI", [Saldo USD con BSEI]- 'Saldo Captacion'[Saldo ANT año USD] 
+			 ,"Var Contratos",[Cantidad de Contratos con BSEI]-'Saldo Captacion'[Contrato ANT año]
+			 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+			 ,"Interes ANT año Bs",'Saldo Captacion'[Interes ANT año Bs] 
+			 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			 ,"Saldo ANT año Bs",'Saldo Captacion'[Saldo ANT año Bs]
+			 ,"CONCEPTO","DETALLE PUBLICO"		 
+			 ,"ORDEN",1    
+			 )
+        ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+		,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales"}
+		)
+,
+
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+					 ,Fecha[Fecha]
+					 ,Fecha[mes]
+					 ,Captacion[Sigla Moneda]
+					 )
+			,"Captacion","TOTAL PUBLICO"
+			,"productoSinMoneda","TOTAL PUBLICO"		 
+			 ,"Var Saldo USD con BSEI", [Saldo USD con BSEI]- 'Saldo Captacion'[Saldo ANT año USD] 
+			 ,"Var Contratos",[Cantidad de Contratos con BSEI]-'Saldo Captacion'[Contrato ANT año]
+			 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+			 ,"Interes ANT año Bs",'Saldo Captacion'[Interes ANT año Bs] 
+			 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			 ,"Saldo ANT año Bs",'Saldo Captacion'[Saldo ANT año Bs]
+			 ,"CONCEPTO","TOTAL PUBLICO"
+			 ,"ORDEN",2
+			 )
+	    ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+		,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica"}
+		)
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+				     ,Fecha[Fecha]
+					 ,Fecha[mes]
+					 ,Captacion[Sigla Moneda]
+					 )
+			,"Captacion","TOTAL INST."
+			,"productoSinMoneda","TOTAL INST."		 
+			 ,"Var Saldo USD con BSEI", [Saldo USD con BSEI]- 'Saldo Captacion'[Saldo ANT año USD] 
+			 ,"Var Contratos",[Cantidad de Contratos con BSEI]-'Saldo Captacion'[Contrato ANT año]
+			 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+			 ,"Interes ANT año Bs",'Saldo Captacion'[Interes ANT año Bs] 
+			 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			 ,"Saldo ANT año Bs",'Saldo Captacion'[Saldo ANT año Bs]
+			 ,"CONCEPTO","TOTAL INST."
+			 ,"ORDEN",3
+			 )
+	    ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+		,Cliente[Clasificacion SIF] in {"Institucionales"}
+		)
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+				     ,Fecha[Fecha]
+					 ,Fecha[mes]
+					 ,Captacion[Sigla Moneda]
+					 )
+			,"Captacion","TOTAL PUB+INST."
+			,"productoSinMoneda","TOTAL PUB+INST."		 
+			 ,"Var Saldo USD con BSEI", [Saldo USD con BSEI]- 'Saldo Captacion'[Saldo ANT año USD] 
+			 ,"Var Contratos",[Cantidad de Contratos con BSEI]-'Saldo Captacion'[Contrato ANT año]
+			 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+			 ,"Interes ANT año Bs",'Saldo Captacion'[Interes ANT año Bs] 
+			 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			 ,"Saldo ANT año Bs",'Saldo Captacion'[Saldo ANT año Bs]
+			 ,"CONCEPTO","TOTAL PUB+INST."
+			 ,"ORDEN",3
+			 )
+	    ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+		,Cliente[Clasificacion SIF] in {"Institucionales","Persona Natural","Persona Juridica"}
+		)		
+,
+   ADDCOLUMNS(
+   CALCULATETABLE(
+		SUMMARIZECOLUMNS(Fecha[Fecha]
+						 ,Fecha[mes]
+						 ,Captacion[Sigla Moneda]
+						 ,Fecha[año]
+					     ,Captacion[productoSinMoneda]
+						 ,"Var Saldo USD con BSEI", [Saldo USD con BSEI]- 'Saldo Captacion'[Saldo ANT año USD] 
+						 ,"Var Contratos",[Cantidad de Contratos con BSEI]-'Saldo Captacion'[Contrato ANT año]
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+						 ,"Interes ANT año Bs",'Saldo Captacion'[Interes ANT año Bs] 
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+						 ,"Saldo ANT año Bs",'Saldo Captacion'[Saldo ANT año Bs]
+			    )
+			    ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+		        ,Cliente[Clasificacion SIF] in {"Entidades Financieras"}
+		)
+		 
+	    ,"CONCEPTO","DEPOSITOS ENTID. FINANC."
+	    ,"ORDEN",4   
+		)
+	
+,
+   ADDCOLUMNS(
+   CALCULATETABLE(
+		SUMMARIZECOLUMNS(Fecha[Fecha]
+						 ,Fecha[mes]
+						 ,Captacion[Sigla Moneda]
+                         ,Fecha[año]
+						 ,Cliente[Clasificacion SIF]
+						 ,"Var Saldo USD con BSEI", [Saldo USD con BSEI]- 'Saldo Captacion'[Saldo ANT año USD] 
+						 ,"Var Contratos",[Cantidad de Contratos con BSEI]-'Saldo Captacion'[Contrato ANT año]
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+						 ,"Interes ANT año Bs",'Saldo Captacion'[Interes ANT año Bs] 
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+						 ,"Saldo ANT año Bs",'Saldo Captacion'[Saldo ANT año Bs]					 
+						 
+			    )
+			    ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+		        ,Cliente[Clasificacion SIF] in  {"Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+		)
+		
+		 ,"CONCEPTO","DEPOSITOS ENTID. FINANC."
+		 ,"ORDEN",5    
+		)
+,
+   ADDCOLUMNS(
+   CALCULATETABLE(
+		SUMMARIZECOLUMNS(Fecha[Fecha]
+						 ,Fecha[mes]
+						 ,Captacion[Sigla Moneda]
+						 ,Fecha[dia]
+						 ,Fecha[año]
+						 ,"Var Saldo USD con BSEI", [Saldo USD con BSEI]- 'Saldo Captacion'[Saldo ANT año USD] 
+						 ,"Var Contratos",[Cantidad de Contratos con BSEI]-'Saldo Captacion'[Contrato ANT año]
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+						 ,"Interes ANT año Bs",'Saldo Captacion'[Interes ANT año Bs] 
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+						 ,"Saldo ANT año Bs",'Saldo Captacion'[Saldo ANT año Bs]					 
+						 
+			    )
+			    ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+		       -- ,Cliente[Clasificacion SIF] in  {"Entidades Financieras","Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+		)
+		 ,"CONCEPTO","TOTAL"
+		 ,"ORDEN",6   
+		)		
+)		
+
+
+</Statement>
+            <ParameterDefinitions>
+              <ParameterDefinition>
+                <Name>prFechaDiaria</Name>
+                <DefaultValues>
+                  <DefaultValue>20220602</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaDiaria</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+              </ParameterDefinition>
+            </ParameterDefinitions>
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="Captacion">
+        <DataField>Producto[Captacion]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="productoSinMoneda">
+        <DataField>Captacion[productoSinMoneda]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha">
+        <DataField>Fecha[fecha]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Sigla_Moneda">
+        <DataField>Captacion[Sigla Moneda]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="mes">
+        <DataField>Fecha[mes]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Bs_con_BSEI">
+        <DataField>[Saldo Bs con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Var_Saldo_USD_con_BSEI">
+        <DataField>[Var Saldo USD con BSEI]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Var_Contratos">
+        <DataField>[Var Contratos]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Interes_Bs">
+        <DataField>[Interes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Interes_ANT_año_Bs">
+        <DataField>[Interes ANT año Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_ANT_año_Bs">
+        <DataField>[Saldo ANT año Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="CONCEPTO">
+        <DataField>[CONCEPTO]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="ORDEN">
+        <DataField>[ORDEN]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

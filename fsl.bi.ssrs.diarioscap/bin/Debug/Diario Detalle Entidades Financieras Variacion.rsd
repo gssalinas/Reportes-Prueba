@@ -1,0 +1,383 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <CommandText>
+DEFINE                                                         
+MEASURE 'Saldo Captacion'[Interes Bs] = SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                     SUMX('Saldo BSEI',     [Tasa]*[montoBs])/100
+EVALUATE
+Union
+(
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+				     ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)
+			 ,"RANGO","VAR.ANUAL"
+			 ,"Saldo Anual ", [Variacion Año USD con BSEI]
+			 ,"Contrato Anual ", [Variacion Contratos Año con BSEI]
+			 ,"Tpp",[Variacion Tpp Año con BSEI]
+			 )
+--	    DATESBETWEEN(Fecha[fecha],date(YEAR(LASTDATE( Fecha[fecha]))-2, 12,31),date(YEAR(LASTDATE( Fecha[fecha]))-2, 12,31)),
+        ,LASTDATE(Fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Entidades Financieras"}
+		)
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+					 ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+ 		     ,"RANGO","VAR.MENSUAL"
+			 ,"Saldo Mensual",[Variacion Mensual USD con BSEI]
+			 ,"Contrato Mensual",[Variacion Contratos Mensual con BSEI]
+			 ,"Tpp",[Variacion Tpp Mensual con BSEI]
+			 )
+        --,Filter(Fecha, Fecha[fecha] = EOMONTH(LASTDATE(Fecha[fecha]),0))
+        --,PREVIOUSMONTH(LASTDATE(Fecha[fecha]))
+        ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Entidades Financieras"}
+		)	
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+					 ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",DATEADD(Fecha[finSemana],-7,day)
+			 ,"RANGO","VAR.SEMANAL"
+			 ,"Saldo Semanal",[Variacion Semanal USD con BSEI]
+			 ,"Contrato Semanal",[Variacion Contratos Semanal con BSEI]
+			 ,"Tpp",[Variacion Tpp Semanal con BSEI]
+			 )
+         --,FILTER(fecha, fecha[semid] &gt;= max(fecha[semid])-1)
+         ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Entidades Financieras"}
+		)	
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+					 ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",PREVIOUSDAY(LASTDATE(Fecha[fecha]))
+			 ,"RANGO","VAR.DIARIA"
+			 ,"Saldo Diaria",[Variacion Diaria USD con BSEI]]]
+			 ,"Contrato Diaria",[Variacion Contratos Diaria con BSEI]
+			 ,"Tpp",[Variacion Tpp Diaria con BSEI]
+			 )
+         --,FILTER(fecha, fecha[semid] &gt;= max(fecha[semid])-1)
+         ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Entidades Financieras"}
+		)	
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo BSEI'
+				     ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)
+			 ,"RANGO","VAR.ANUAL"
+			 ,"Saldo Anual ", [Variacion Año USD con BSEI]
+			 ,"Contrato Anual ", [Variacion Contratos Año con BSEI]
+			 ,"Tpp",[Variacion Tpp Año con BSEI]
+			 )
+--	    DATESBETWEEN(Fecha[fecha],date(YEAR(LASTDATE( Fecha[fecha]))-2, 12,31),date(YEAR(LASTDATE( Fecha[fecha]))-2, 12,31)),
+        ,LASTDATE(Fecha[fecha])
+		,Cliente[Clasificacion SIF] in  {"Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+		)
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo BSEI'
+					 ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+ 		     ,"RANGO","VAR.MENSUAL"
+			 ,"Saldo Mensual",[Variacion Mensual USD con BSEI]
+			 ,"Contrato Mensual",[Variacion Contratos Mensual con BSEI]
+			 ,"Tpp",[Variacion Tpp Mensual con BSEI]
+			 )
+        --,Filter(Fecha, Fecha[fecha] = EOMONTH(LASTDATE(Fecha[fecha]),0))
+        --,PREVIOUSMONTH(LASTDATE(Fecha[fecha]))
+        ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in  {"Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+		)	
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo BSEI'
+					 ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",DATEADD(Fecha[finSemana],-7,day)
+			 ,"RANGO","VAR.SEMANAL"
+			 ,"Saldo Semanal",[Variacion Semanal USD con BSEI]
+			 ,"Contrato Semanal",[Variacion Contratos Semanal con BSEI]
+			 ,"Tpp",[Variacion Tpp Semanal con BSEI]
+			 )
+         --,FILTER(fecha, fecha[semid] &gt;= max(fecha[semid])-1)
+         ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in  {"Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+		)	
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo BSEI'
+					 ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",PREVIOUSDAY(LASTDATE(Fecha[fecha]))
+			 ,"RANGO","VAR.DIARIA"
+			 ,"Saldo Diaria",[Variacion Diaria USD con BSEI]]]
+			 ,"Contrato Diaria",[Variacion Contratos Diaria con BSEI]
+			 ,"Tpp",[Variacion Tpp Diaria con BSEI]
+			 )
+         --,FILTER(fecha, fecha[semid] &gt;= max(fecha[semid])-1)
+         ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in  {"Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+		)	
+)</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Captacion</DimensionName>
+                    <HierarchyName>productoSinMoneda</HierarchyName>
+                    <HierarchyUniqueName>[Captacion].[productoSinMoneda]</HierarchyUniqueName>
+                    <LevelName>productoSinMoneda</LevelName>
+                    <UniqueName>[Captacion].[productoSinMoneda].[productoSinMoneda]</UniqueName>
+                  </ID>
+                  <ItemCaption>productoSinMoneda</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[RANGO]</ColumnName>
+                  </ID>
+                  <ItemCaption>RANGO</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo Anual ]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo Anual </ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Contrato Anual ]</ColumnName>
+                  </ID>
+                  <ItemCaption>Contrato Anual </ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Tpp]</ColumnName>
+                  </ID>
+                  <ItemCaption>Tpp</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>
+DEFINE                                                         
+MEASURE 'Saldo Captacion'[Interes Bs] = SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                     SUMX('Saldo BSEI',     [Tasa]*[montoBs])/100
+EVALUATE
+Union
+(
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+				     ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)
+			 ,"RANGO","VAR.ANUAL"
+			 ,"Saldo Anual ", [Variacion Año USD con BSEI]
+			 ,"Contrato Anual ", [Variacion Contratos Año con BSEI]
+			 ,"Tpp",[Variacion Tpp Año con BSEI]
+			 )
+--	    DATESBETWEEN(Fecha[fecha],date(YEAR(LASTDATE( Fecha[fecha]))-2, 12,31),date(YEAR(LASTDATE( Fecha[fecha]))-2, 12,31)),
+        ,LASTDATE(Fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Entidades Financieras"}
+		)
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+					 ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+ 		     ,"RANGO","VAR.MENSUAL"
+			 ,"Saldo Mensual",[Variacion Mensual USD con BSEI]
+			 ,"Contrato Mensual",[Variacion Contratos Mensual con BSEI]
+			 ,"Tpp",[Variacion Tpp Mensual con BSEI]
+			 )
+        --,Filter(Fecha, Fecha[fecha] = EOMONTH(LASTDATE(Fecha[fecha]),0))
+        --,PREVIOUSMONTH(LASTDATE(Fecha[fecha]))
+        ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Entidades Financieras"}
+		)	
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+					 ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",DATEADD(Fecha[finSemana],-7,day)
+			 ,"RANGO","VAR.SEMANAL"
+			 ,"Saldo Semanal",[Variacion Semanal USD con BSEI]
+			 ,"Contrato Semanal",[Variacion Contratos Semanal con BSEI]
+			 ,"Tpp",[Variacion Tpp Semanal con BSEI]
+			 )
+         --,FILTER(fecha, fecha[semid] &gt;= max(fecha[semid])-1)
+         ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Entidades Financieras"}
+		)	
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+					 ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",PREVIOUSDAY(LASTDATE(Fecha[fecha]))
+			 ,"RANGO","VAR.DIARIA"
+			 ,"Saldo Diaria",[Variacion Diaria USD con BSEI]]]
+			 ,"Contrato Diaria",[Variacion Contratos Diaria con BSEI]
+			 ,"Tpp",[Variacion Tpp Diaria con BSEI]
+			 )
+         --,FILTER(fecha, fecha[semid] &gt;= max(fecha[semid])-1)
+         ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Entidades Financieras"}
+		)	
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo BSEI'
+				     ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)
+			 ,"RANGO","VAR.ANUAL"
+			 ,"Saldo Anual ", [Variacion Año USD con BSEI]
+			 ,"Contrato Anual ", [Variacion Contratos Año con BSEI]
+			 ,"Tpp",[Variacion Tpp Año con BSEI]
+			 )
+--	    DATESBETWEEN(Fecha[fecha],date(YEAR(LASTDATE( Fecha[fecha]))-2, 12,31),date(YEAR(LASTDATE( Fecha[fecha]))-2, 12,31)),
+        ,LASTDATE(Fecha[fecha])
+		,Cliente[Clasificacion SIF] in  {"Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+		)
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo BSEI'
+					 ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+ 		     ,"RANGO","VAR.MENSUAL"
+			 ,"Saldo Mensual",[Variacion Mensual USD con BSEI]
+			 ,"Contrato Mensual",[Variacion Contratos Mensual con BSEI]
+			 ,"Tpp",[Variacion Tpp Mensual con BSEI]
+			 )
+        --,Filter(Fecha, Fecha[fecha] = EOMONTH(LASTDATE(Fecha[fecha]),0))
+        --,PREVIOUSMONTH(LASTDATE(Fecha[fecha]))
+        ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in  {"Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+		)	
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo BSEI'
+					 ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",DATEADD(Fecha[finSemana],-7,day)
+			 ,"RANGO","VAR.SEMANAL"
+			 ,"Saldo Semanal",[Variacion Semanal USD con BSEI]
+			 ,"Contrato Semanal",[Variacion Contratos Semanal con BSEI]
+			 ,"Tpp",[Variacion Tpp Semanal con BSEI]
+			 )
+         --,FILTER(fecha, fecha[semid] &gt;= max(fecha[semid])-1)
+         ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in  {"Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+		)	
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo BSEI'
+					 ,Captacion[productoSinMoneda]
+					 )
+			 ,"fecha",PREVIOUSDAY(LASTDATE(Fecha[fecha]))
+			 ,"RANGO","VAR.DIARIA"
+			 ,"Saldo Diaria",[Variacion Diaria USD con BSEI]]]
+			 ,"Contrato Diaria",[Variacion Contratos Diaria con BSEI]
+			 ,"Tpp",[Variacion Tpp Diaria con BSEI]
+			 )
+         --,FILTER(fecha, fecha[semid] &gt;= max(fecha[semid])-1)
+         ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in  {"Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+		)	
+)</Statement>
+            <ParameterDefinitions />
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="productoSinMoneda">
+        <DataField>Captacion[productoSinMoneda]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha">
+        <DataField>[fecha]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="RANGO">
+        <DataField>[RANGO]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Anual_">
+        <DataField>[Saldo Anual ]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Contrato_Anual_">
+        <DataField>[Contrato Anual ]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Tpp">
+        <DataField>[Tpp]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

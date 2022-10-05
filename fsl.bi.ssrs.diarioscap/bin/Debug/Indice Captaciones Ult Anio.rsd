@@ -1,0 +1,364 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="prFechaDiaria">
+          <DefaultValue>20220601</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>DEFINE 
+
+MEASURE 'Saldo Captacion'[mejores_10_depositantes] = SUMX(
+															TOPN(10,
+																 ADDCOLUMNS(
+																	   SUMMARIZE('Saldo Captacion',Cliente[cliente])
+																	   ,"saldo",[Saldo Usd])
+															     ,[Saldo])
+															,[Saldo] )	
+MEASURE 'Saldo Captacion'[mejores_20_depositantes] = SUMX(
+															TOPN(20,
+																 ADDCOLUMNS(
+																	   SUMMARIZE('Saldo Captacion',Cliente[cliente])
+																	   ,"saldo",[Saldo Usd])
+															     ,[Saldo])
+															,[Saldo] )			
+MEASURE 'Saldo Captacion'[mejores_30_depositantes] = SUMX(
+															TOPN(30,
+																 ADDCOLUMNS(
+																	   SUMMARIZE('Saldo Captacion',Cliente[cliente])
+																	   ,"saldo",[Saldo Usd])
+															     ,[Saldo])
+															,[Saldo] )			
+MEASURE 'Saldo Captacion'[mejores_50_depositantes] = SUMX(
+															TOPN(50,
+																 ADDCOLUMNS(
+																	   SUMMARIZE('Saldo Captacion',Cliente[cliente])
+																	   ,"saldo",[Saldo Usd])
+															     ,[Saldo])
+															,[Saldo] )		
+MEASURE 'Saldo Captacion'[mejores_100_depositantes] = SUMX(
+															TOPN(100,
+																 ADDCOLUMNS(
+																	   SUMMARIZE('Saldo Captacion',Cliente[cliente])
+																	   ,"saldo",[Saldo Usd])
+															     ,[Saldo])
+															,[Saldo] )		
+MEASURE 'Saldo Captacion'[saldo_institucionales]=CALCULATE([Saldo Usd],Cliente[Clasificacion SIF] ="Institucionales")
+MEASURE 'Saldo Captacion'[Institucionales Relacionados]=CALCULATE([Saldo Usd],Cliente[Cliente] in {647121,721627,770973}, Cliente[Clasificacion SIF] ="Institucionales")
+MEASURE 'Saldo Captacion'[saldo_Clientes_Naturales]=CALCULATE([Saldo Usd], Cliente[Clasificacion SIF] ="Persona Natural")
+MEASURE 'Saldo Captacion'[saldo_Clientes_Juridicos]=CALCULATE([Saldo Usd], Cliente[Clasificacion SIF] ="Persona Juridica")
+
+evaluate
+union(
+CALCULATETABLE(
+	    ADDCOLUMNS(
+        SUMMARIZE('Saldo Captacion'
+                 ,Captacion[moneda])
+                  ,"mejores_10_depositantes",[mejores_10_depositantes]
+                  ,"mejores_20_depositantes",[mejores_20_depositantes]
+                  ,"mejores_30_depositantes",[mejores_30_depositantes]
+                  ,"mejores_50_depositantes",[mejores_50_depositantes]
+                  ,"mejores_100_depositantes",[mejores_100_depositantes]
+                  ,"saldo_institucionales",[saldo_institucionales]
+                  ,"saldo_Clientes_Naturales",[saldo_Clientes_Naturales]
+                  ,"saldo_Clientes_Juridicos",[saldo_Clientes_Juridicos]
+                  ,"Institucionales Relacionados",[Institucionales Relacionados]
+                   )
+                 ,FILTER(FECHA,FECHA[FECHA]=DATE(MID(@prFechaDiaria,1,4)-1,12,31))
+        ,not (ISBLANK(Producto[Captacion]))
+        ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales"}	   
+        )
+,
+	CALCULATETABLE(
+        ADDCOLUMNS(
+        SUMMARIZE('Saldo Captacion'
+                  ,"moneda",9)
+                  ,"mejores_10_depositantes",[mejores_10_depositantes]
+                  ,"mejores_20_depositantes",[mejores_20_depositantes]
+                  ,"mejores_30_depositantes",[mejores_30_depositantes]
+                  ,"mejores_50_depositantes",[mejores_50_depositantes]
+                  ,"mejores_100_depositantes",[mejores_100_depositantes]
+                  ,"saldo_institucionales",[saldo_institucionales]
+                  ,"saldo_Clientes_Naturales",[saldo_Clientes_Naturales]
+                  ,"saldo_Clientes_Juridicos",[saldo_Clientes_Juridicos]                  
+                  ,"Institucionales Relacionados",[Institucionales Relacionados]
+                   )
+                ,FILTER(FECHA,FECHA[FECHA]=DATE(MID(@prFechaDiaria,1,4)-1,12,31))               
+         ,not (ISBLANK(Producto[Captacion]))
+         ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales"}	   
+        )
+,
+	CALCULATETABLE(
+        ADDCOLUMNS(
+            SUMMARIZE('Saldo Captacion'
+                  ,"moneda",5)
+                  ,"mejores_10_depositantes",[mejores_10_depositantes]
+                  ,"mejores_20_depositantes",[mejores_20_depositantes]
+                  ,"mejores_30_depositantes",[mejores_30_depositantes]
+                  ,"mejores_50_depositantes",[mejores_50_depositantes]
+                  ,"mejores_100_depositantes",[mejores_100_depositantes]
+                  ,"saldo_institucionales",[saldo_institucionales]
+                  ,"saldo_Clientes_Naturales",[saldo_Clientes_Naturales]
+                  ,"saldo_Clientes_Juridicos",[saldo_Clientes_Juridicos]                  
+                  ,"Institucionales Relacionados",[Institucionales Relacionados]
+                   )
+                ,Captacion[moneda] in {1,4}   
+                ,FILTER(FECHA,FECHA[FECHA]=DATE(MID(@prFechaDiaria,1,4)-1,12,31))                 
+         ,not (ISBLANK(Producto[Captacion]))
+         ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales"}	   
+        )
+)  </CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Captacion</DimensionName>
+                    <HierarchyName>moneda</HierarchyName>
+                    <HierarchyUniqueName>[Captacion].[moneda]</HierarchyUniqueName>
+                    <LevelName>moneda</LevelName>
+                    <UniqueName>[Captacion].[moneda].[moneda]</UniqueName>
+                  </ID>
+                  <ItemCaption>moneda</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[mejores_10_depositantes]</ColumnName>
+                  </ID>
+                  <ItemCaption>mejores_10_depositantes</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[mejores_20_depositantes]</ColumnName>
+                  </ID>
+                  <ItemCaption>mejores_20_depositantes</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[mejores_30_depositantes]</ColumnName>
+                  </ID>
+                  <ItemCaption>mejores_30_depositantes</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[mejores_50_depositantes]</ColumnName>
+                  </ID>
+                  <ItemCaption>mejores_50_depositantes</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[mejores_100_depositantes]</ColumnName>
+                  </ID>
+                  <ItemCaption>mejores_100_depositantes</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[saldo_institucionales]</ColumnName>
+                  </ID>
+                  <ItemCaption>saldo_institucionales</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[saldo_Clientes_Naturales]</ColumnName>
+                  </ID>
+                  <ItemCaption>saldo_Clientes_Naturales</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[saldo_Clientes_Juridicos]</ColumnName>
+                  </ID>
+                  <ItemCaption>saldo_Clientes_Juridicos</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Institucionales Relacionados]</ColumnName>
+                  </ID>
+                  <ItemCaption>Institucionales Relacionados</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>DEFINE 
+
+MEASURE 'Saldo Captacion'[mejores_10_depositantes] = SUMX(
+															TOPN(10,
+																 ADDCOLUMNS(
+																	   SUMMARIZE('Saldo Captacion',Cliente[cliente])
+																	   ,"saldo",[Saldo Usd])
+															     ,[Saldo])
+															,[Saldo] )	
+MEASURE 'Saldo Captacion'[mejores_20_depositantes] = SUMX(
+															TOPN(20,
+																 ADDCOLUMNS(
+																	   SUMMARIZE('Saldo Captacion',Cliente[cliente])
+																	   ,"saldo",[Saldo Usd])
+															     ,[Saldo])
+															,[Saldo] )			
+MEASURE 'Saldo Captacion'[mejores_30_depositantes] = SUMX(
+															TOPN(30,
+																 ADDCOLUMNS(
+																	   SUMMARIZE('Saldo Captacion',Cliente[cliente])
+																	   ,"saldo",[Saldo Usd])
+															     ,[Saldo])
+															,[Saldo] )			
+MEASURE 'Saldo Captacion'[mejores_50_depositantes] = SUMX(
+															TOPN(50,
+																 ADDCOLUMNS(
+																	   SUMMARIZE('Saldo Captacion',Cliente[cliente])
+																	   ,"saldo",[Saldo Usd])
+															     ,[Saldo])
+															,[Saldo] )		
+MEASURE 'Saldo Captacion'[mejores_100_depositantes] = SUMX(
+															TOPN(100,
+																 ADDCOLUMNS(
+																	   SUMMARIZE('Saldo Captacion',Cliente[cliente])
+																	   ,"saldo",[Saldo Usd])
+															     ,[Saldo])
+															,[Saldo] )		
+MEASURE 'Saldo Captacion'[saldo_institucionales]=CALCULATE([Saldo Usd],Cliente[Clasificacion SIF] ="Institucionales")
+MEASURE 'Saldo Captacion'[Institucionales Relacionados]=CALCULATE([Saldo Usd],Cliente[Cliente] in {647121,721627,770973}, Cliente[Clasificacion SIF] ="Institucionales")
+MEASURE 'Saldo Captacion'[saldo_Clientes_Naturales]=CALCULATE([Saldo Usd], Cliente[Clasificacion SIF] ="Persona Natural")
+MEASURE 'Saldo Captacion'[saldo_Clientes_Juridicos]=CALCULATE([Saldo Usd], Cliente[Clasificacion SIF] ="Persona Juridica")
+
+evaluate
+union(
+CALCULATETABLE(
+	    ADDCOLUMNS(
+        SUMMARIZE('Saldo Captacion'
+                 ,Captacion[moneda])
+                  ,"mejores_10_depositantes",[mejores_10_depositantes]
+                  ,"mejores_20_depositantes",[mejores_20_depositantes]
+                  ,"mejores_30_depositantes",[mejores_30_depositantes]
+                  ,"mejores_50_depositantes",[mejores_50_depositantes]
+                  ,"mejores_100_depositantes",[mejores_100_depositantes]
+                  ,"saldo_institucionales",[saldo_institucionales]
+                  ,"saldo_Clientes_Naturales",[saldo_Clientes_Naturales]
+                  ,"saldo_Clientes_Juridicos",[saldo_Clientes_Juridicos]
+                  ,"Institucionales Relacionados",[Institucionales Relacionados]
+                   )
+                 ,FILTER(FECHA,FECHA[FECHA]=DATE(MID(@prFechaDiaria,1,4)-1,12,31))
+        ,not (ISBLANK(Producto[Captacion]))
+        ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales"}	   
+        )
+,
+	CALCULATETABLE(
+        ADDCOLUMNS(
+        SUMMARIZE('Saldo Captacion'
+                  ,"moneda",9)
+                  ,"mejores_10_depositantes",[mejores_10_depositantes]
+                  ,"mejores_20_depositantes",[mejores_20_depositantes]
+                  ,"mejores_30_depositantes",[mejores_30_depositantes]
+                  ,"mejores_50_depositantes",[mejores_50_depositantes]
+                  ,"mejores_100_depositantes",[mejores_100_depositantes]
+                  ,"saldo_institucionales",[saldo_institucionales]
+                  ,"saldo_Clientes_Naturales",[saldo_Clientes_Naturales]
+                  ,"saldo_Clientes_Juridicos",[saldo_Clientes_Juridicos]                  
+                  ,"Institucionales Relacionados",[Institucionales Relacionados]
+                   )
+                ,FILTER(FECHA,FECHA[FECHA]=DATE(MID(@prFechaDiaria,1,4)-1,12,31))               
+         ,not (ISBLANK(Producto[Captacion]))
+         ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales"}	   
+        )
+,
+	CALCULATETABLE(
+        ADDCOLUMNS(
+            SUMMARIZE('Saldo Captacion'
+                  ,"moneda",5)
+                  ,"mejores_10_depositantes",[mejores_10_depositantes]
+                  ,"mejores_20_depositantes",[mejores_20_depositantes]
+                  ,"mejores_30_depositantes",[mejores_30_depositantes]
+                  ,"mejores_50_depositantes",[mejores_50_depositantes]
+                  ,"mejores_100_depositantes",[mejores_100_depositantes]
+                  ,"saldo_institucionales",[saldo_institucionales]
+                  ,"saldo_Clientes_Naturales",[saldo_Clientes_Naturales]
+                  ,"saldo_Clientes_Juridicos",[saldo_Clientes_Juridicos]                  
+                  ,"Institucionales Relacionados",[Institucionales Relacionados]
+                   )
+                ,Captacion[moneda] in {1,4}   
+                ,FILTER(FECHA,FECHA[FECHA]=DATE(MID(@prFechaDiaria,1,4)-1,12,31))                 
+         ,not (ISBLANK(Producto[Captacion]))
+         ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales"}	   
+        )
+)  
+</Statement>
+            <ParameterDefinitions>
+              <ParameterDefinition>
+                <Name>prFechaDiaria</Name>
+                <DefaultValues>
+                  <DefaultValue>20220601</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaDiaria</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+              </ParameterDefinition>
+            </ParameterDefinitions>
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="moneda">
+        <DataField>Captacion[moneda]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="mejores_10_depositantes">
+        <DataField>[mejores_10_depositantes]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="mejores_20_depositantes">
+        <DataField>[mejores_20_depositantes]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="mejores_30_depositantes">
+        <DataField>[mejores_30_depositantes]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="mejores_50_depositantes">
+        <DataField>[mejores_50_depositantes]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="mejores_100_depositantes">
+        <DataField>[mejores_100_depositantes]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="saldo_institucionales">
+        <DataField>[saldo_institucionales]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="saldo_Clientes_Naturales">
+        <DataField>[saldo_Clientes_Naturales]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Institucionales_Relacionados">
+        <DataField>[Institucionales Relacionados]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="saldo_Clientes_Juridicos">
+        <DataField>[saldo_Clientes_Juridicos]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

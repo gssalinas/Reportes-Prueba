@@ -1,0 +1,255 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <CommandText>DEFINE                                                         
+MEASURE 'Saldo Captacion'[Interes Bs] = SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                     SUMX('Saldo BSEI',     [Tasa]*[montoBs])/100
+EVALUATE
+Union
+(
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE(
+			'Saldo Captacion',
+			Fecha[año]
+				 )
+			 ,"Fecha",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)
+			 ,"RANGO","VAR.ANUAL"
+			 ,"CONCEPTO","TOTAL PUBLICO"
+			 ,"Var Saldo",    [Variacion Año USD con BSEI]
+			 ,"Var Contrato", [Variacion Contratos Año con BSEI]
+			 ,"Var Tpp",      [Variacion Tpp Año con BSEI]
+			 )
+        ,LASTDATE(Fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica"}
+		)
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion',
+			         Fecha[año]
+					 )
+			 ,"Fecha",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+ 		     ,"RANGO","VAR.MENSUAL"
+ 		     ,"CONCEPTO","TOTAL PUBLICO"
+			 ,"Var Saldo",   [Variacion Mensual USD con BSEI]
+			 ,"Var Contrato",[Variacion Contratos Mensual con BSEI]
+			 ,"Var Tpp",     [Variacion Tpp Mensual con BSEI]
+			 )
+        ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica"}
+		)	
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion',
+		            	Fecha[año]
+					 )
+			 ,"fecha",DATEADD(Fecha[finSemana],-7,day)					 
+			 ,"RANGO","VAR.SEMANAL"
+ 		     ,"CONCEPTO","TOTAL PUBLICO"			 
+			 ,"Var Saldo",   [Variacion Semanal USD con BSEI]
+			 ,"Var Contrato",[Variacion Contratos Semanal con BSEI]
+			 ,"Var Tpp",     [Variacion Tpp Semanal con BSEI]
+			 )
+         ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica"}
+		)	
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion',
+			          Fecha[año]
+					 )
+			 ,"fecha",PREVIOUSDAY(LASTDATE(Fecha[fecha]))
+			 ,"RANGO","VAR.DIARIA"
+			 ,"CONCEPTO","TOTAL PUBLICO"
+			 ,"Var Saldo",   [Variacion Diaria USD con BSEI]]]
+			 ,"Var Contrato",[Variacion Contratos Diaria con BSEI]
+			 ,"Var Tpp",     [Variacion Tpp Diaria con BSEI]
+			 )
+         ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica"}
+		)	
+)	</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>año</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[año]</HierarchyUniqueName>
+                    <LevelName>año</LevelName>
+                    <UniqueName>[Fecha].[año].[año]</UniqueName>
+                  </ID>
+                  <ItemCaption>año</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Fecha]</ColumnName>
+                  </ID>
+                  <ItemCaption>Fecha</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[RANGO]</ColumnName>
+                  </ID>
+                  <ItemCaption>RANGO</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[CONCEPTO]</ColumnName>
+                  </ID>
+                  <ItemCaption>CONCEPTO</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Var Saldo]</ColumnName>
+                  </ID>
+                  <ItemCaption>Var Saldo</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Var Contrato]</ColumnName>
+                  </ID>
+                  <ItemCaption>Var Contrato</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Var Tpp]</ColumnName>
+                  </ID>
+                  <ItemCaption>Var Tpp</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>DEFINE                                                         
+MEASURE 'Saldo Captacion'[Interes Bs] = SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                     SUMX('Saldo BSEI',     [Tasa]*[montoBs])/100
+EVALUATE
+Union
+(
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE(
+			'Saldo Captacion',
+			Fecha[año]
+				 )
+			 ,"Fecha",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)
+			 ,"RANGO","VAR.ANUAL"
+			 ,"CONCEPTO","TOTAL PUBLICO"
+			 ,"Var Saldo",    [Variacion Año USD con BSEI]
+			 ,"Var Contrato", [Variacion Contratos Año con BSEI]
+			 ,"Var Tpp",      [Variacion Tpp Año con BSEI]
+			 )
+        ,LASTDATE(Fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica"}
+		)
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion',
+			         Fecha[año]
+					 )
+			 ,"Fecha",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+ 		     ,"RANGO","VAR.MENSUAL"
+ 		     ,"CONCEPTO","TOTAL PUBLICO"
+			 ,"Var Saldo",   [Variacion Mensual USD con BSEI]
+			 ,"Var Contrato",[Variacion Contratos Mensual con BSEI]
+			 ,"Var Tpp",     [Variacion Tpp Mensual con BSEI]
+			 )
+        ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica"}
+		)	
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion',
+		            	Fecha[año]
+					 )
+			 ,"fecha",DATEADD(Fecha[finSemana],-7,day)					 
+			 ,"RANGO","VAR.SEMANAL"
+ 		     ,"CONCEPTO","TOTAL PUBLICO"			 
+			 ,"Var Saldo",   [Variacion Semanal USD con BSEI]
+			 ,"Var Contrato",[Variacion Contratos Semanal con BSEI]
+			 ,"Var Tpp",     [Variacion Tpp Semanal con BSEI]
+			 )
+         ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica"}
+		)	
+		
+,
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion',
+			          Fecha[año]
+					 )
+			 ,"fecha",PREVIOUSDAY(LASTDATE(Fecha[fecha]))
+			 ,"RANGO","VAR.DIARIA"
+			 ,"CONCEPTO","TOTAL PUBLICO"
+			 ,"Var Saldo",   [Variacion Diaria USD con BSEI]]]
+			 ,"Var Contrato",[Variacion Contratos Diaria con BSEI]
+			 ,"Var Tpp",     [Variacion Tpp Diaria con BSEI]
+			 )
+         ,LASTDATE(fecha[fecha])
+		,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica"}
+		)	
+)	</Statement>
+            <ParameterDefinitions />
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="año">
+        <DataField>Fecha[año]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Fecha">
+        <DataField>[Fecha]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="RANGO">
+        <DataField>[RANGO]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="CONCEPTO">
+        <DataField>[CONCEPTO]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Var_Saldo">
+        <DataField>[Var Saldo]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Var_Contrato">
+        <DataField>[Var Contrato]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Var_Tpp">
+        <DataField>[Var Tpp]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

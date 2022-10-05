@@ -1,0 +1,290 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <CommandText>DEFINE                                                         
+MEASURE 'Saldo Captacion'[Interes Bs] = SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                     SUMX('Saldo BSEI',     [Tasa]*[montoBs])/100
+--saldo anual de los ultimos 5 años, Detalle depositos al publico e Institucional
+EVALUATE
+UNION(
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+				     ,Producto[Captacion]
+					 ,Captacion[productoSinMoneda]
+					 ,Fecha[Fecha]
+					 ,Fecha[mes]
+					 )
+			 ,"RANGO","ANUAL"
+			 ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+			 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+			 --tpp=divide(Interes Bs,saldo)
+			 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+			 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			 ),
+	    filter(fecha,Fecha[fecha]=EOMONTH(fecha[fecha],0)),
+	    month(Fecha[fecha])=12,
+	  --  DATESBETWEEN(Fecha[fecha],FIRSTDATE(Fecha[fecha]),date(YEAR(LASTDATE( Fecha[fecha]))-2, 01,01)),
+		Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales"}
+		)
+,
+--saldo mensual deL año ACTUAL, Detalle depositos al publico e Institucional
+--EVALUATE
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+				     ,Producto[Captacion]
+					 ,Captacion[productoSinMoneda]
+					 ,fecha[fecha]
+					  ,Fecha[mes]
+					 )
+			 ,"RANGO","MENSUAL"
+			 ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+			 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+			 --tpp=divide(Interes Bs,saldo)
+			 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+			 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			--,"Tpp", [Tasa Promedio Ponderada.]
+			 ),
+	    filter(fecha,Fecha[fecha]=EOMONTH(fecha[fecha],0)),
+	    DATESBETWEEN(Fecha[fecha],date(YEAR(LASTDATE( Fecha[fecha])), 01,01),LASTDATE(Fecha[fecha])),
+		Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales"}
+		)
+
+,
+--saldo diario ultimas 2 semanas, Detalle depositos al publico e Institucional
+--EVALUATE
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+				     ,Producto[Captacion]
+					 ,Captacion[productoSinMoneda]
+					 ,fecha[fecha]
+                     ,Fecha[mes]
+					 )
+			 ,"RANGO","SEMANAL"
+			 ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+			 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+			 --tpp=divide(Interes Bs,saldo)
+			 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+			 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			--,"Tpp", [Tasa Promedio Ponderada.]
+			 ),
+         --fILTER(fecha,ABS(DATEDIFF(Fecha[fecha],now(),DAY))&lt;=5),
+	    FILTER(fecha, fecha[semid] &gt;= max(fecha[semid])-1),
+		Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales"}
+		)
+)</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Producto</DimensionName>
+                    <HierarchyName>Captacion</HierarchyName>
+                    <HierarchyUniqueName>[Producto].[Captacion]</HierarchyUniqueName>
+                    <LevelName>Captacion</LevelName>
+                    <UniqueName>[Producto].[Captacion].[Captacion]</UniqueName>
+                  </ID>
+                  <ItemCaption>Captacion</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Captacion</DimensionName>
+                    <HierarchyName>productoSinMoneda</HierarchyName>
+                    <HierarchyUniqueName>[Captacion].[productoSinMoneda]</HierarchyUniqueName>
+                    <LevelName>productoSinMoneda</LevelName>
+                    <UniqueName>[Captacion].[productoSinMoneda].[productoSinMoneda]</UniqueName>
+                  </ID>
+                  <ItemCaption>productoSinMoneda</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>fecha</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[fecha]</HierarchyUniqueName>
+                    <LevelName>fecha</LevelName>
+                    <UniqueName>[Fecha].[fecha].[fecha]</UniqueName>
+                  </ID>
+                  <ItemCaption>fecha</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>mes</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[mes]</HierarchyUniqueName>
+                    <LevelName>mes</LevelName>
+                    <UniqueName>[Fecha].[mes].[mes]</UniqueName>
+                  </ID>
+                  <ItemCaption>mes</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo USD con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo USD con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo USD con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Cantidad de Contratos</MeasureName>
+                    <UniqueName>[Measures].[Cantidad de Contratos]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cantidad de Contratos</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo Bs con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo Bs con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo Bs con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[RANGO]</ColumnName>
+                  </ID>
+                  <ItemCaption>RANGO</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes Bs</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>DEFINE                                                         
+MEASURE 'Saldo Captacion'[Interes Bs] = SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                     SUMX('Saldo BSEI',     [Tasa]*[montoBs])/100
+--saldo anual de los ultimos 5 años, Detalle depositos al publico e Institucional
+EVALUATE
+UNION(
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+				     ,Producto[Captacion]
+					 ,Captacion[productoSinMoneda]
+					 ,Fecha[Fecha]
+					 ,Fecha[mes]
+					 )
+			 ,"RANGO","ANUAL"
+			 ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+			 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+			 --tpp=divide(Interes Bs,saldo)
+			 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+			 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			 ),
+	    filter(fecha,Fecha[fecha]=EOMONTH(fecha[fecha],0)),
+	    month(Fecha[fecha])=12,
+	  --  DATESBETWEEN(Fecha[fecha],FIRSTDATE(Fecha[fecha]),date(YEAR(LASTDATE( Fecha[fecha]))-2, 01,01)),
+		Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales"}
+		)
+,
+--saldo mensual deL año ACTUAL, Detalle depositos al publico e Institucional
+--EVALUATE
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+				     ,Producto[Captacion]
+					 ,Captacion[productoSinMoneda]
+					 ,fecha[fecha]
+					  ,Fecha[mes]
+					 )
+			 ,"RANGO","MENSUAL"
+			 ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+			 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+			 --tpp=divide(Interes Bs,saldo)
+			 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+			 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			--,"Tpp", [Tasa Promedio Ponderada.]
+			 ),
+	    filter(fecha,Fecha[fecha]=EOMONTH(fecha[fecha],0)),
+	    DATESBETWEEN(Fecha[fecha],date(YEAR(LASTDATE( Fecha[fecha])), 01,01),LASTDATE(Fecha[fecha])),
+		Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales"}
+		)
+
+,
+--saldo diario ultimas 2 semanas, Detalle depositos al publico e Institucional
+--EVALUATE
+CALCULATETABLE(
+		ADDCOLUMNS(
+			SUMMARIZE('Saldo Captacion'
+				     ,Producto[Captacion]
+					 ,Captacion[productoSinMoneda]
+					 ,fecha[fecha]
+                     ,Fecha[mes]
+					 )
+			 ,"RANGO","SEMANAL"
+			 ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+			 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+			 --tpp=divide(Interes Bs,saldo)
+			 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+			 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			--,"Tpp", [Tasa Promedio Ponderada.]
+			 ),
+         --fILTER(fecha,ABS(DATEDIFF(Fecha[fecha],now(),DAY))&lt;=5),
+	    FILTER(fecha, fecha[semid] &gt;= max(fecha[semid])-1),
+		Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales"}
+		)
+)</Statement>
+            <ParameterDefinitions />
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="Captacion">
+        <DataField>Producto[Captacion]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="productoSinMoneda">
+        <DataField>Captacion[productoSinMoneda]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha">
+        <DataField>Fecha[fecha]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="RANGO">
+        <DataField>[RANGO]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="mes">
+        <DataField>Fecha[mes]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_USD_con_BSEI">
+        <DataField>[Saldo USD con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Cantidad_de_Contratos">
+        <DataField>[Cantidad de Contratos]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Bs_con_BSEI">
+        <DataField>[Saldo Bs con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Interes_Bs">
+        <DataField>[Interes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

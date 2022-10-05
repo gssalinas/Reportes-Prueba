@@ -1,0 +1,312 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="prFechaDiaria">
+          <DefaultValue>20220619</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>DEFINE  
+
+MEASURE 'Saldo Captacion'[Interes Bs] = calculate(SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', [Tasa]*[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))
+MEASURE 'Saldo Captacion'[plazoxMonto] =calculate(SUMX('Saldo Captacion',RELATED(Captacion[Plazo en Dias]) *[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', RELATED(Captacion[Plazo en Dias]) *[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))
+MEASURE 'Saldo Captacion'[plzRexMonto] =calculate(SUMX('Saldo Captacion', DATEDIFF(LASTDATE(Fecha[fecha]), RELATED('Fecha Vencimiento'[Fecha Venc.]),  day) *[montoBs])/100 +
+                                                  SUMX('Saldo BSEI',  DATEDIFF(LASTDATE(Fecha[fecha]), RELATED('Fecha Vencimiento'[Fecha Venc.]),  day) *[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))                                              
+EVALUATE
+ADDCOLUMNS(
+	CALCULATETABLE(
+			 ADDCOLUMNS(
+				SUMMARIZECOLUMNS(
+								 Captacion[Moneda]
+							    -- ,Captacion[productoSinMoneda]
+			                     ,Cliente[Clasificacion SIF]
+			                     ,Captacion[Plazo en Dias]
+			                     ,'Fecha Vencimiento'[Fecha Venc.]
+							     ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+								 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+								 ,"Interes Bs",[Interes Bs]
+								 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]	
+								 ,"plazoxMonto",[plazoxMonto]
+								 ,"plzRexMonto",[plzRexMonto]
+								 
+					    )
+			    ,"Plazo Residual", DATEDIFF(LASTDATE(Fecha[fecha]), [Fecha Venc.],  day)
+			     )
+			,Captacion[recurso]="DPF"			     
+			,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+			,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras","Entidades Financieras Medpl"} --,"Subordinadas Exterior","Bonos Subordinados"
+			)
+	,"Rango Plazos Residual",SWITCH(TRUE()
+					,[Plazo Residual]&gt;1080, "Mayor a 1.080 días"
+					,[Plazo Residual]&gt; 720, "De 721 a 1.080 días"
+					,[Plazo Residual]&gt; 360, "De 361 a 720 días"
+					,[Plazo Residual]&gt; 180, "De 181 a 360 días"
+					,[Plazo Residual]&gt;  90, "De 91 a 180 días"
+					,[Plazo Residual]&gt;  60, "De 61 a 90 días"
+					,[Plazo Residual]&gt;  30, "De 31 a 60 días"
+					                      , "A 30 días")	
+	,"Rango Plazos Nominal",SWITCH(TRUE()
+					,[Plazo en Dias]&gt;1080, "Mayor a 1.080 días"
+					,[Plazo en Dias]&gt; 720, "De 721 a 1.080 días"
+					,[Plazo en Dias]&gt; 360, "De 361 a 720 días"
+					,[Plazo en Dias]&gt; 180, "De 181 a 360 días"
+					,[Plazo en Dias]&gt;  90, "De 91 a 180 días"
+					,[Plazo en Dias]&gt;  60, "De 61 a 90 días"
+					,[Plazo en Dias]&gt;  30, "De 31 a 60 días"
+				                         , "A 30 días")						
+)</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Captacion</DimensionName>
+                    <HierarchyName>moneda</HierarchyName>
+                    <HierarchyUniqueName>[Captacion].[moneda]</HierarchyUniqueName>
+                    <LevelName>moneda</LevelName>
+                    <UniqueName>[Captacion].[moneda].[moneda]</UniqueName>
+                  </ID>
+                  <ItemCaption>moneda</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Cliente</DimensionName>
+                    <HierarchyName>Clasificacion SIF</HierarchyName>
+                    <HierarchyUniqueName>[Cliente].[Clasificacion SIF]</HierarchyUniqueName>
+                    <LevelName>Clasificacion SIF</LevelName>
+                    <UniqueName>[Cliente].[Clasificacion SIF].[Clasificacion SIF]</UniqueName>
+                  </ID>
+                  <ItemCaption>Clasificacion SIF</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Captacion</DimensionName>
+                    <HierarchyName>Plazo en Dias</HierarchyName>
+                    <HierarchyUniqueName>[Captacion].[Plazo en Dias]</HierarchyUniqueName>
+                    <LevelName>Plazo en Dias</LevelName>
+                    <UniqueName>[Captacion].[Plazo en Dias].[Plazo en Dias]</UniqueName>
+                  </ID>
+                  <ItemCaption>Plazo en Dias</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha Vencimiento</DimensionName>
+                    <HierarchyName>Fecha Venc.</HierarchyName>
+                    <HierarchyUniqueName>[Fecha Vencimiento].[Fecha Venc.]</HierarchyUniqueName>
+                    <LevelName>Fecha Venc.</LevelName>
+                    <UniqueName>[Fecha Vencimiento].[Fecha Venc.].[Fecha Venc.]</UniqueName>
+                  </ID>
+                  <ItemCaption>Fecha Venc.</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo USD con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo USD con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo USD con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Cantidad de Contratos</MeasureName>
+                    <UniqueName>[Measures].[Cantidad de Contratos]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cantidad de Contratos</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo Bs con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo Bs con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo Bs con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[plazoxMonto]</ColumnName>
+                  </ID>
+                  <ItemCaption>plazoxMonto</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[plzRexMonto]</ColumnName>
+                  </ID>
+                  <ItemCaption>plzRexMonto</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Plazo Residual]</ColumnName>
+                  </ID>
+                  <ItemCaption>Plazo Residual</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Rango Plazos Residual]</ColumnName>
+                  </ID>
+                  <ItemCaption>Rango Plazos Residual</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Rango Plazos Nominal]</ColumnName>
+                  </ID>
+                  <ItemCaption>Rango Plazos Nominal</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>DEFINE  
+
+MEASURE 'Saldo Captacion'[Interes Bs] = calculate(SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', [Tasa]*[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))
+MEASURE 'Saldo Captacion'[plazoxMonto] =calculate(SUMX('Saldo Captacion',RELATED(Captacion[Plazo en Dias]) *[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', RELATED(Captacion[Plazo en Dias]) *[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))
+MEASURE 'Saldo Captacion'[plzRexMonto] =calculate(SUMX('Saldo Captacion', DATEDIFF(LASTDATE(Fecha[fecha]), RELATED('Fecha Vencimiento'[Fecha Venc.]),  day) *[montoBs])/100 +
+                                                  SUMX('Saldo BSEI',  DATEDIFF(LASTDATE(Fecha[fecha]), RELATED('Fecha Vencimiento'[Fecha Venc.]),  day) *[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))                                              
+EVALUATE
+ADDCOLUMNS(
+	CALCULATETABLE(
+			 ADDCOLUMNS(
+				SUMMARIZECOLUMNS(
+								 Captacion[Moneda]
+							    -- ,Captacion[productoSinMoneda]
+			                     ,Cliente[Clasificacion SIF]
+			                     ,Captacion[Plazo en Dias]
+			                     ,'Fecha Vencimiento'[Fecha Venc.]
+							     ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+								 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+								 ,"Interes Bs",[Interes Bs]
+								 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]	
+								 ,"plazoxMonto",[plazoxMonto]
+								 ,"plzRexMonto",[plzRexMonto]
+								 
+					    )
+			    ,"Plazo Residual", DATEDIFF(LASTDATE(Fecha[fecha]), [Fecha Venc.],  day)
+			     )
+			,Captacion[recurso]="DPF"			     
+			,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+			,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras","Entidades Financieras Medpl"} --,"Subordinadas Exterior","Bonos Subordinados"
+			)
+	,"Rango Plazos Residual",SWITCH(TRUE()
+					,[Plazo Residual]&gt;1080, "Mayor a 1.080 días"
+					,[Plazo Residual]&gt; 720, "De 721 a 1.080 días"
+					,[Plazo Residual]&gt; 360, "De 361 a 720 días"
+					,[Plazo Residual]&gt; 180, "De 181 a 360 días"
+					,[Plazo Residual]&gt;  90, "De 91 a 180 días"
+					,[Plazo Residual]&gt;  60, "De 61 a 90 días"
+					,[Plazo Residual]&gt;  30, "De 31 a 60 días"
+					                      , "A 30 días")	
+	,"Rango Plazos Nominal",SWITCH(TRUE()
+					,[Plazo en Dias]&gt;1080, "Mayor a 1.080 días"
+					,[Plazo en Dias]&gt; 720, "De 721 a 1.080 días"
+					,[Plazo en Dias]&gt; 360, "De 361 a 720 días"
+					,[Plazo en Dias]&gt; 180, "De 181 a 360 días"
+					,[Plazo en Dias]&gt;  90, "De 91 a 180 días"
+					,[Plazo en Dias]&gt;  60, "De 61 a 90 días"
+					,[Plazo en Dias]&gt;  30, "De 31 a 60 días"
+				                         , "A 30 días")						
+)</Statement>
+            <ParameterDefinitions>
+              <ParameterDefinition>
+                <Name>prFechaDiaria</Name>
+                <DefaultValues>
+                  <DefaultValue>20220619</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaDiaria</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+              </ParameterDefinition>
+            </ParameterDefinitions>
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="moneda">
+        <DataField>Captacion[moneda]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Clasificacion_SIF">
+        <DataField>Cliente[Clasificacion SIF]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Plazo_en_Dias">
+        <DataField>Captacion[Plazo en Dias]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Fecha_Venc_">
+        <DataField>Fecha Vencimiento[Fecha Venc.]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_USD_con_BSEI">
+        <DataField>[Saldo USD con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Cantidad_de_Contratos">
+        <DataField>[Cantidad de Contratos]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Bs_con_BSEI">
+        <DataField>[Saldo Bs con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Interes_Bs">
+        <DataField>[Interes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="plazoxMonto">
+        <DataField>[plazoxMonto]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="plzRexMonto">
+        <DataField>[plzRexMonto]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Plazo_Residual">
+        <DataField>[Plazo Residual]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Rango_Plazos_Residual">
+        <DataField>[Rango Plazos Residual]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Rango_Plazos_Nominal">
+        <DataField>[Rango Plazos Nominal]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

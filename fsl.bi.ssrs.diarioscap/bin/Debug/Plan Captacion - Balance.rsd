@@ -1,0 +1,161 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsBALANCE</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="prFechaDiaria">
+          <DefaultValue>20220317</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+          <rd:IsMultiValued>true</rd:IsMultiValued>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>DEFINE
+//MEASURE Balance[TOTAL DEPOSITOS DEL PUBLICO]= CALCULATE([Acumulado USD],
+//                                                          'Plan de Cuentas'[Grupo] in {"21 - OBLIGACIONES CON EL PUBLICO",
+//                                                                                       "28 - OBLIGACIONES CON EMPRESAS PUBLICAS"})
+//MEASURE Balance[DEP. DE ENTIDADES FINANCIERAS]= CALCULATE([Acumulado USD],
+//                                                          'Plan de Cuentas'[Grupo] in {"23 - Obligaciones con Bcos. y Entidades de Financiamiento"})
+MEASURE Balance[Obligaciones BCB]= CALCULATE([Acumulado USD],
+                                                          'Plan de Cuentas'[Cuenta] in {"232 - Obligaciones con el Bcb a Plazo"})
+MEASURE Balance[Oblig. C/Ent. Fin. De 2do Piso a Plazo]= CALCULATE([Acumulado USD],
+                                                          'Plan de Cuentas'[Cuenta] in {"234 - Obligaciones C/Entidades Financ.De Segundo Piso a Plazo"})                                                         
+//MEASURE Balance[DEPOSITOS CAH]= CALCULATE([Acumulado USD],
+//                                                          'Plan de Cuentas'[Subcuenta] in {"21201 - Depositos en Caja de Ahorros",
+//                                                                                           "21202 - Depositos en Caja de Ahorros Clausuradas por Inactividad"})     
+
+EVALUATE
+	CALCULATETABLE(
+	    ADDCOLUMNS(
+	        SUMMARIZE(Balance
+	                  ,Fecha[fecha])
+	             ,"id", INT(Fecha[fecha])--FORMAT(Fecha[fecha],"###0")
+	             ,"Obligaciones BCB",[Obligaciones BCB]/1000    
+	             ,"Oblig. C/Ent. Fin. De 2do Piso a Plazo",[Oblig. C/Ent. Fin. De 2do Piso a Plazo]/1000
+	             )
+				,filter(fecha,
+				        (Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; month(Fecha[fecha])=12 &amp;&amp; YEAR (Fecha[fecha] ) &gt;= value(Mid(@prFechaDiaria,1,4))-1) --saldo anual del ultimo año
+				        ||(Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; year(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4)) &amp;&amp; Fecha[id]&lt;value(@prFechaDiaria)) --saldo mensual deL año ACTUAL
+				        ||(YEAR(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4))-1 &amp;&amp; month(Fecha[fecha])=value(MID(@prFechaDiaria,5,2)) &amp;&amp; day(fecha[fecha])=VALUE(MID(@prFechaDiaria,7,2))) --misma fecha año anterior
+				        || Fecha[fecha]&gt;DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2))-7 &amp;&amp; Fecha[id]&lt;=value(@prFechaDiaria) --ultimos 7 dias
+				        ) 
+	             )</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>Fecha</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[Fecha]</HierarchyUniqueName>
+                    <LevelName>Fecha</LevelName>
+                    <UniqueName>[Fecha].[Fecha].[Fecha]</UniqueName>
+                  </ID>
+                  <ItemCaption>Fecha</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[id]</ColumnName>
+                  </ID>
+                  <ItemCaption>id</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Obligaciones BCB]</ColumnName>
+                  </ID>
+                  <ItemCaption>Obligaciones BCB</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Oblig. C/Ent. Fin. De 2do Piso a Plazo]</ColumnName>
+                  </ID>
+                  <ItemCaption>Oblig. C/Ent. Fin. De 2do Piso a Plazo</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>ContabilidadMayor</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>DEFINE
+//MEASURE Balance[TOTAL DEPOSITOS DEL PUBLICO]= CALCULATE([Acumulado USD],
+//                                                          'Plan de Cuentas'[Grupo] in {"21 - OBLIGACIONES CON EL PUBLICO",
+//                                                                                       "28 - OBLIGACIONES CON EMPRESAS PUBLICAS"})
+//MEASURE Balance[DEP. DE ENTIDADES FINANCIERAS]= CALCULATE([Acumulado USD],
+//                                                          'Plan de Cuentas'[Grupo] in {"23 - Obligaciones con Bcos. y Entidades de Financiamiento"})
+MEASURE Balance[Obligaciones BCB]= CALCULATE([Acumulado USD],
+                                                          'Plan de Cuentas'[Cuenta] in {"232 - Obligaciones con el Bcb a Plazo"})
+MEASURE Balance[Oblig. C/Ent. Fin. De 2do Piso a Plazo]= CALCULATE([Acumulado USD],
+                                                          'Plan de Cuentas'[Cuenta] in {"234 - Obligaciones C/Entidades Financ.De Segundo Piso a Plazo"})                                                         
+//MEASURE Balance[DEPOSITOS CAH]= CALCULATE([Acumulado USD],
+//                                                          'Plan de Cuentas'[Subcuenta] in {"21201 - Depositos en Caja de Ahorros",
+//                                                                                           "21202 - Depositos en Caja de Ahorros Clausuradas por Inactividad"})     
+
+EVALUATE
+	CALCULATETABLE(
+	    ADDCOLUMNS(
+	        SUMMARIZE(Balance
+	                  ,Fecha[fecha])
+	             ,"id", INT(Fecha[fecha])--FORMAT(Fecha[fecha],"###0")
+	             ,"Obligaciones BCB",[Obligaciones BCB]/1000    
+	             ,"Oblig. C/Ent. Fin. De 2do Piso a Plazo",[Oblig. C/Ent. Fin. De 2do Piso a Plazo]/1000
+	             )
+				,filter(fecha,
+				        (Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; month(Fecha[fecha])=12 &amp;&amp; YEAR (Fecha[fecha] ) &gt;= value(Mid(@prFechaDiaria,1,4))-1) --saldo anual del ultimo año
+				        ||(Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; year(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4)) &amp;&amp; Fecha[id]&lt;value(@prFechaDiaria)) --saldo mensual deL año ACTUAL
+				        ||(YEAR(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4))-1 &amp;&amp; month(Fecha[fecha])=value(MID(@prFechaDiaria,5,2)) &amp;&amp; day(fecha[fecha])=VALUE(MID(@prFechaDiaria,7,2))) --misma fecha año anterior
+				        || Fecha[fecha]&gt;DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2))-7 &amp;&amp; Fecha[id]&lt;=value(@prFechaDiaria) --ultimos 7 dias
+				        ) 
+	             )</Statement>
+            <ParameterDefinitions>
+              <ParameterDefinition>
+                <Name>prFechaDiaria</Name>
+                <DefaultValues>
+                  <DefaultValue>20220317</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaDiaria</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+                <MultipleValues>true</MultipleValues>
+              </ParameterDefinition>
+            </ParameterDefinitions>
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="Fecha">
+        <DataField>Fecha[Fecha]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="id">
+        <DataField>[id]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Obligaciones_BCB">
+        <DataField>[Obligaciones BCB]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Oblig__C_Ent__Fin__De_2do_Piso_a_Plazo">
+        <DataField>[Oblig. C/Ent. Fin. De 2do Piso a Plazo]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

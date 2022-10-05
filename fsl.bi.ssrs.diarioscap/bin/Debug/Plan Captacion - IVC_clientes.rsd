@@ -1,0 +1,240 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCLIENTES</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="prFechaDiaria">
+          <DefaultValue>20220317</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>
+EVALUATE
+  ADDCOLUMNS(
+   CALCULATETABLE(
+      SUMMARIZECOLUMNS(
+       Fecha[fecha]
+       ,Gestor[Grupo Banca]
+       ,filter(fecha,
+			        (Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; month(Fecha[fecha])=12 &amp;&amp; YEAR (Fecha[fecha] ) &gt;= value(Mid(@prFechaDiaria,1,4))-1) --saldo anual del ultimo año
+			        ||(Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; year(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4)) &amp;&amp; Fecha[id]&lt;value(@prFechaDiaria)) --saldo mensual deL año ACTUAL
+			        ||(YEAR(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4))-1 &amp;&amp; month(Fecha[fecha])=value(MID(@prFechaDiaria,5,2)) &amp;&amp; day(fecha[fecha])=VALUE(MID(@prFechaDiaria,7,2))) --misma fecha año anterior
+			        || Fecha[fecha]&gt;DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2))-7 &amp;&amp; Fecha[id]&lt;=value(@prFechaDiaria) --ultimos 7 dias
+			        )
+      , "TDs Utilizadas 6 meses", CALCULATE(sum('Clientes Activos'[TDB]), LASTDATE(Fecha[fecha]))
+      , "Clientes con FassilNET", CALCULATE(sum('Clientes Activos'[VC FassilNET]), LASTDATE(Fecha[fecha]))
+      , "Numero de Clientes Activos", [Numero de Clientes Activos]
+
+        ,"fecha variacion año",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)  
+        ,"fecha variacion mes",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+        ,"fecha variacion ant",DATEADD(Fecha[fecha],-1,day)    
+      ,"id_anioant",INT(date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)) 
+      ,"id_mesant", INT(EOMONTH(LASTDATE(Fecha[fecha]),-1))
+      ,"id_diaant", INT(DATEADD(Fecha[fecha],-1,day))  
+      )
+      ,Gestor[Grupo Banca]&lt;&gt;"Finanzas"
+      )
+       ,"id", INT(Fecha[fecha])
+)</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>fecha</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[fecha]</HierarchyUniqueName>
+                    <LevelName>fecha</LevelName>
+                    <UniqueName>[Fecha].[fecha].[fecha]</UniqueName>
+                  </ID>
+                  <ItemCaption>fecha</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Gestor</DimensionName>
+                    <HierarchyName>Grupo Banca</HierarchyName>
+                    <HierarchyUniqueName>[Gestor].[Grupo Banca]</HierarchyUniqueName>
+                    <LevelName>Grupo Banca</LevelName>
+                    <UniqueName>[Gestor].[Grupo Banca].[Grupo Banca]</UniqueName>
+                  </ID>
+                  <ItemCaption>Grupo Banca</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Numero de Clientes Activos</MeasureName>
+                    <UniqueName>[Measures].[Numero de Clientes Activos]</UniqueName>
+                  </ID>
+                  <ItemCaption>Numero de Clientes Activos</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[TDs Utilizadas 6 meses]</ColumnName>
+                  </ID>
+                  <ItemCaption>TDs Utilizadas 6 meses</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Clientes con FassilNET]</ColumnName>
+                  </ID>
+                  <ItemCaption>Clientes con FassilNET</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha variacion año]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha variacion año</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha variacion mes]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha variacion mes</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha variacion ant]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha variacion ant</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[id_anioant]</ColumnName>
+                  </ID>
+                  <ItemCaption>id_anioant</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[id_mesant]</ColumnName>
+                  </ID>
+                  <ItemCaption>id_mesant</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[id_diaant]</ColumnName>
+                  </ID>
+                  <ItemCaption>id_diaant</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[id]</ColumnName>
+                  </ID>
+                  <ItemCaption>id</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Clientes</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>
+EVALUATE
+  ADDCOLUMNS(
+   CALCULATETABLE(
+      SUMMARIZECOLUMNS(
+       Fecha[fecha]
+       ,Gestor[Grupo Banca]
+       ,filter(fecha,
+			        (Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; month(Fecha[fecha])=12 &amp;&amp; YEAR (Fecha[fecha] ) &gt;= value(Mid(@prFechaDiaria,1,4))-1) --saldo anual del ultimo año
+			        ||(Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; year(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4)) &amp;&amp; Fecha[id]&lt;value(@prFechaDiaria)) --saldo mensual deL año ACTUAL
+			        ||(YEAR(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4))-1 &amp;&amp; month(Fecha[fecha])=value(MID(@prFechaDiaria,5,2)) &amp;&amp; day(fecha[fecha])=VALUE(MID(@prFechaDiaria,7,2))) --misma fecha año anterior
+			        || Fecha[fecha]&gt;DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2))-7 &amp;&amp; Fecha[id]&lt;=value(@prFechaDiaria) --ultimos 7 dias
+			        )
+      , "TDs Utilizadas 6 meses", CALCULATE(sum('Clientes Activos'[TDB]), LASTDATE(Fecha[fecha]))
+      , "Clientes con FassilNET", CALCULATE(sum('Clientes Activos'[VC FassilNET]), LASTDATE(Fecha[fecha]))
+      , "Numero de Clientes Activos", [Numero de Clientes Activos]
+
+        ,"fecha variacion año",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)  
+        ,"fecha variacion mes",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+        ,"fecha variacion ant",DATEADD(Fecha[fecha],-1,day)    
+      ,"id_anioant",INT(date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)) 
+      ,"id_mesant", INT(EOMONTH(LASTDATE(Fecha[fecha]),-1))
+      ,"id_diaant", INT(DATEADD(Fecha[fecha],-1,day))  
+      )
+      ,Gestor[Grupo Banca]&lt;&gt;"Finanzas"
+      )
+       ,"id", INT(Fecha[fecha])
+)</Statement>
+            <ParameterDefinitions>
+              <ParameterDefinition>
+                <Name>prFechaDiaria</Name>
+                <DefaultValues>
+                  <DefaultValue>20220317</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaDiaria</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+              </ParameterDefinition>
+            </ParameterDefinitions>
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="fecha">
+        <DataField>Fecha[fecha]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Grupo_Banca">
+        <DataField>Gestor[Grupo Banca]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="TDs_Utilizadas_6_meses">
+        <DataField>[TDs Utilizadas 6 meses]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Numero_de_Clientes_Activos">
+        <DataField>[Numero de Clientes Activos]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Clientes_con_FassilNET">
+        <DataField>[Clientes con FassilNET]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_año">
+        <DataField>[fecha variacion año]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="id_anioant">
+        <DataField>[id_anioant]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_mes">
+        <DataField>[fecha variacion mes]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="id_mesant">
+        <DataField>[id_mesant]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_ant">
+        <DataField>[fecha variacion ant]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="id_diaant">
+        <DataField>[id_diaant]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="id">
+        <DataField>[id]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

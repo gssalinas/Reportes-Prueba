@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>SVRDBBI01</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="@prFechaDiaria">
+          <DefaultValue>20220731</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:UserDefined>true</rd:UserDefined>
+          <rd:DbType>String</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>declare @fecha as int
+set @fecha= cast(@prFechaDiaria as int)
+
+;with estratificacion as(
+select c.recurso,c.nro_cuenta,Nombre_Agencia=b.agenciaDescripcion,cod_agencia=b.agencia--,producto=d.producto
+,a.tasa, montoUSD, montoBs,
+       Rango_Saldo_mayor_500=case when montoUSD &gt;2000000 then 'Mayor 2,000.000'
+                            when montoUSD &gt;1000000 then '&gt;1,000,000 &lt;= 2,000,000'
+                            when montoUSD &gt; 500000 then '&gt;500,000 &lt;= 1,000,000'
+                            when montoUSD &gt; 200000 then '&gt;200,000 &lt;= 500,000'
+                            when montoUSD &gt; 100000 then '&gt;100,000 &lt;= 200,000'
+                            when montoUSD &gt;  50000 then '&gt;50,000 &lt;= 100,000'
+                            when montoUSD &gt;  30000 then '&gt;30,000 &lt;= 50,000'
+                            when montoUSD &gt;  20000 then '&gt;20,000 &lt;= 30,000'
+                            when montoUSD &gt;  15000 then '&gt;15,000 &lt;= 20,000'
+                            when montoUSD &gt;  10000 then '&gt;10,000 &lt;= 15,000'
+                            when montoUSD &gt;   5000 then '&gt;5,000 &lt;= 10,000'
+                            when montoUSD &gt;   1000 then '&gt;1,000 &lt;= 5,000'
+                            when montoUSD &gt;    500 then '&gt; 500 &lt;= 1,000'
+                            else 'Menor/Igual 500' end,
+				   Rango_Saldo_menor_500=case when montoUSD &gt;500 then 'Mayor a 500'
+												                when montoUSD &gt;400 then '&gt; 400 &lt;= 500'
+												                when montoUSD &gt;300 then '&gt; 300 &lt;= 400'
+												                when montoUSD &gt;200 then '&gt; 200 &lt;= 300'
+												                when montoUSD &gt;100 then '&gt; 100 &lt;= 200'
+												                when montoUSD &gt;50  then '&gt; 50 &lt;= 100'
+												                when montoUSD &gt;20  then '&gt; 20 &lt;= 50'
+												                when montoUSD &gt;10  then '&gt; 10 &lt;= 20'
+												                when montoUSD &gt;6   then '&gt; 6 &lt;=10'
+												                else 'Menor/Igual a 6' end	
+  from cap.v_fact a--   .f_2022 a
+       inner join dw.d_Subzona b
+       on a.subzonaGestorCaptacionFK=b.id
+       inner join cap.d_contrato c
+       on a.contratoCaptacionFK=c.id
+       inner join cap.d_producto d
+       on d.id=c.productoCaptacionFK
+       inner join dw.d_Clientes e
+       on e.id=a.clienteFK
+       and e.claseDescripcion in ('Persona Natural','Persona Juridica','Institucionales')
+ where fechaFK=@fecha)
+    
+   select recurso,cod_agencia,Nombre_Agencia,--,producto,
+   Rango_Saldo_mayor_500,Rango_Saldo_menor_500, Cantidad_de_Contratos=count(*),interes_bs=sum(tasa*montoBs), saldo_USD_con_BSEI=SUM(montoUSD), saldo_Bs_con_BSEI=SUM(montoBs)
+     from estratificacion
+ GROUP by recurso,cod_agencia,Nombre_Agencia--,producto
+ ,Rango_Saldo_mayor_500,Rango_Saldo_menor_500</CommandText>
+      <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
+    </Query>
+    <Fields>
+      <Field Name="recurso">
+        <DataField>recurso</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="cod_agencia">
+        <DataField>cod_agencia</DataField>
+        <rd:TypeName>System.Int16</rd:TypeName>
+      </Field>
+      <Field Name="Nombre_Agencia">
+        <DataField>Nombre_Agencia</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Rango_Saldo_mayor_500">
+        <DataField>Rango_Saldo_mayor_500</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Rango_Saldo_menor_500">
+        <DataField>Rango_Saldo_menor_500</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cantidad_de_Contratos">
+        <DataField>Cantidad_de_Contratos</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="interes_bs">
+        <DataField>interes_bs</DataField>
+        <rd:TypeName>System.Decimal</rd:TypeName>
+      </Field>
+      <Field Name="saldo_USD_con_BSEI">
+        <DataField>saldo_USD_con_BSEI</DataField>
+        <rd:TypeName>System.Decimal</rd:TypeName>
+      </Field>
+      <Field Name="saldo_Bs_con_BSEI">
+        <DataField>saldo_Bs_con_BSEI</DataField>
+        <rd:TypeName>System.Decimal</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

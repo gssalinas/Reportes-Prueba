@@ -1,0 +1,304 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="prFechaDiaria">
+          <DefaultValue>20220317</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>define
+MEASURE 'Saldo Captacion'[Cant ANT sem USD] =  CALCULATE([Cantidad de Clientes Ultimo Dia con BSEI], DATEADD(LASTDATE(Fecha[FECHA]),-7,day))     
+
+EVALUATE
+union(
+  ADDCOLUMNS(
+   CALCULATETABLE(
+        SUMMARIZECOLUMNS(Fecha[Fecha]
+                         ,cliente[Objeto]	
+                         ,filter(fecha,
+                                (Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; month(Fecha[fecha])=12 &amp;&amp; YEAR (Fecha[fecha] ) &gt;= value(Mid(@prFechaDiaria,1,4))-3) --saldo anual de los ultimos 3 años
+                                ||((Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; year(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4)))&amp;&amp; --saldo mensual deL año ACTUAL
+                                fecha[fecha]&lt;= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+                                
+                                ||(WEEKNUM(fecha[fecha],2) &gt;= weeknum(DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)),2)-1 &amp;&amp; --saldo diario ultimas 2 semanas
+                                fecha[fecha]&lt;= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)) &amp;&amp;
+                               -- weekday(fecha[fecha])&lt;&gt;1 &amp;&amp;
+                                YEAR ( Fecha[fecha] ) = value(Mid(@prFechaDiaria,1,4))))
+
+                        ,"Cantidad de Clientes",[Cantidad de Clientes Ultimo Dia con BSEI]
+                         
+                )
+                ,not (ISBLANK(Producto[Captacion]))
+                ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras",
+                                                   "Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}                            
+        )
+	 ,"Clientes Año Anterior",0
+	 ,"Clientes Semana Anterior",0
+	 ,"Clientes Mes Anterior",0
+	 ,"Clientes Anterior",0
+    ,"RANGO","SALDO"
+    ,"fecha variacion año",date(1900,01,01)    
+    ,"fecha variacion mes",date(1900,01,01)    
+    ,"fecha variacion sem",date(1900,01,01)    
+    ,"fecha variacion dia",date(1900,01,01)    
+    )
+,
+   ADDCOLUMNS(
+   CALCULATETABLE(
+        SUMMARIZECOLUMNS(Fecha[Fecha]
+                         ,cliente[Objeto]	
+                         ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+                         ,"Cantidad de Clientes",[Cantidad de Clientes Ultimo Dia con BSEI]
+						 ,"Clientes Año Anterior",[Cant de Clientes Año Anterior con BSEI]
+						 ,"Clientes Semana Anterior",[Cant ANT sem USD]--[Cant de Clientes Semana Anterior con BSEI]
+						 ,"Clientes Mes Anterior",[Cant de Clientes Mes Anterior con BSEI]
+						 ,"Clientes Anterior",[Cant de Clientes Anterior con BSEI]
+                )
+                ,not (ISBLANK(Producto[Captacion]))
+                ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras",
+                                                   "Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}                            
+               
+        )
+        ,"RANGO","VARIACION"
+        ,"fecha variacion año",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)  
+        ,"fecha variacion mes",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+        ,"fecha variacion sem",DATEADD(Fecha[fecha],-7,day)   
+        ,"fecha variacion dia",PREVIOUSDAY(LASTDATE(Fecha[fecha]))
+        )
+     )</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>fecha</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[fecha]</HierarchyUniqueName>
+                    <LevelName>fecha</LevelName>
+                    <UniqueName>[Fecha].[fecha].[fecha]</UniqueName>
+                  </ID>
+                  <ItemCaption>fecha</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Cliente</DimensionName>
+                    <HierarchyName>Objeto</HierarchyName>
+                    <HierarchyUniqueName>[Cliente].[Objeto]</HierarchyUniqueName>
+                    <LevelName>Objeto</LevelName>
+                    <UniqueName>[Cliente].[Objeto].[Objeto]</UniqueName>
+                  </ID>
+                  <ItemCaption>Objeto</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Cantidad de Clientes</MeasureName>
+                    <UniqueName>[Measures].[Cantidad de Clientes]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cantidad de Clientes</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Clientes Año Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Clientes Año Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Clientes Semana Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Clientes Semana Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Clientes Mes Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Clientes Mes Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Clientes Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Clientes Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[RANGO]</ColumnName>
+                  </ID>
+                  <ItemCaption>RANGO</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha variacion año]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha variacion año</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha variacion mes]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha variacion mes</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha variacion sem]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha variacion sem</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha variacion dia]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha variacion dia</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>define
+MEASURE 'Saldo Captacion'[Cant ANT sem USD] =  CALCULATE([Cantidad de Clientes Ultimo Dia con BSEI], DATEADD(LASTDATE(Fecha[FECHA]),-7,day))     
+
+EVALUATE
+union(
+  ADDCOLUMNS(
+   CALCULATETABLE(
+        SUMMARIZECOLUMNS(Fecha[Fecha]
+                         ,cliente[Objeto]	
+                         ,filter(fecha,
+                                (Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; month(Fecha[fecha])=12 &amp;&amp; YEAR (Fecha[fecha] ) &gt;= value(Mid(@prFechaDiaria,1,4))-3) --saldo anual de los ultimos 3 años
+                                ||((Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; year(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4)))&amp;&amp; --saldo mensual deL año ACTUAL
+                                fecha[fecha]&lt;= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+                                
+                                ||(WEEKNUM(fecha[fecha],2) &gt;= weeknum(DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)),2)-1 &amp;&amp; --saldo diario ultimas 2 semanas
+                                fecha[fecha]&lt;= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)) &amp;&amp;
+                               -- weekday(fecha[fecha])&lt;&gt;1 &amp;&amp;
+                                YEAR ( Fecha[fecha] ) = value(Mid(@prFechaDiaria,1,4))))
+
+                        ,"Cantidad de Clientes",[Cantidad de Clientes Ultimo Dia con BSEI]
+                         
+                )
+                ,not (ISBLANK(Producto[Captacion]))
+                ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras",
+                                                   "Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}                            
+        )
+	 ,"Clientes Año Anterior",0
+	 ,"Clientes Semana Anterior",0
+	 ,"Clientes Mes Anterior",0
+	 ,"Clientes Anterior",0
+    ,"RANGO","SALDO"
+    ,"fecha variacion año",date(1900,01,01)    
+    ,"fecha variacion mes",date(1900,01,01)    
+    ,"fecha variacion sem",date(1900,01,01)    
+    ,"fecha variacion dia",date(1900,01,01)    
+    )
+,
+   ADDCOLUMNS(
+   CALCULATETABLE(
+        SUMMARIZECOLUMNS(Fecha[Fecha]
+                         ,cliente[Objeto]	
+                         ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+                         ,"Cantidad de Clientes",[Cantidad de Clientes Ultimo Dia con BSEI]
+						 ,"Clientes Año Anterior",[Cant de Clientes Año Anterior con BSEI]
+						 ,"Clientes Semana Anterior",[Cant ANT sem USD]--[Cant de Clientes Semana Anterior con BSEI]
+						 ,"Clientes Mes Anterior",[Cant de Clientes Mes Anterior con BSEI]
+						 ,"Clientes Anterior",[Cant de Clientes Anterior con BSEI]
+                )
+                ,not (ISBLANK(Producto[Captacion]))
+                ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras",
+                                                   "Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}                            
+               
+        )
+        ,"RANGO","VARIACION"
+        ,"fecha variacion año",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)  
+        ,"fecha variacion mes",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+        ,"fecha variacion sem",DATEADD(Fecha[fecha],-7,day)   
+        ,"fecha variacion dia",PREVIOUSDAY(LASTDATE(Fecha[fecha]))
+        )
+     )</Statement>
+            <ParameterDefinitions>
+              <ParameterDefinition>
+                <Name>prFechaDiaria</Name>
+                <DefaultValues>
+                  <DefaultValue>20220317</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaDiaria</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+              </ParameterDefinition>
+            </ParameterDefinitions>
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="fecha">
+        <DataField>Fecha[fecha]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Objeto">
+        <DataField>Cliente[Objeto]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cantidad_de_Clientes">
+        <DataField>[Cantidad de Clientes]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Clientes_Año_Anterior">
+        <DataField>[Clientes Año Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Clientes_Semana_Anterior">
+        <DataField>[Clientes Semana Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="RANGO">
+        <DataField>[RANGO]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Clientes_Mes_Anterior">
+        <DataField>[Clientes Mes Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Clientes_Anterior">
+        <DataField>[Clientes Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_año">
+        <DataField>[fecha variacion año]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_mes">
+        <DataField>[fecha variacion mes]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_sem">
+        <DataField>[fecha variacion sem]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_dia">
+        <DataField>[fecha variacion dia]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

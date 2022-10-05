@@ -1,0 +1,350 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="prFechaDiaria">
+          <DefaultValue>20220501</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>DEFINE  
+MEASURE 'Saldo Captacion'[Interes Bs] = calculate(SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', [Tasa]*[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))
+MEASURE 'Saldo Captacion'[Interes ANT año Bs] = CALCULATE('Saldo Captacion'[Interes Bs] ,PREVIOUSYEAR(LASTDATE(Fecha[fecha])))
+MEASURE 'Saldo Captacion'[Saldo ANT año Bs] = CALCULATE([Saldo Bs con BSEI] ,PREVIOUSYEAR(LASTDATE(Fecha[fecha])))  
+MEASURE 'Saldo Captacion'[Interes ANT mes Bs] = CALCULATE('Saldo Captacion'[Interes Bs] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+MEASURE 'Saldo Captacion'[Saldo ANT mes Bs] = CALCULATE([Saldo Bs con BSEI] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+MEASURE 'Saldo Captacion'[Interes ANT dia Bs] = CALCULATE('Saldo Captacion'[Interes Bs] ,LASTDATE(Fecha[FECHA]))
+MEASURE 'Saldo Captacion'[Saldo ANT dia Bs] =  CALCULATE( [Saldo Bs con BSEI], LASTDATE(Fecha[FECHA]))  
+
+EVALUATE
+ ADDCOLUMNS(
+   CALCULATETABLE(
+        SUMMARIZECOLUMNS(Fecha[Fecha]
+                         ,Captacion[recurso]        
+                         ,Cliente[participacionEstatal]
+                         ,Cliente[Tipo Depositante]                         
+                         ,Cliente[Clasificacion SIF]
+                         ,Captacion[productoSinMoneda]
+						,filter(fecha,
+						        (Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; month(Fecha[fecha])=12 &amp;&amp; YEAR (Fecha[fecha] ) &gt;= value(Mid(@prFechaDiaria,1,4))-1) --saldo anual del ultimo año
+						        ||(Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; year(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4)) &amp;&amp; Fecha[id]&lt;value(@prFechaDiaria)) --saldo mensual deL año ACTUAL
+						        ||(YEAR(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4))-1 &amp;&amp; month(Fecha[fecha])=value(MID(@prFechaDiaria,5,2)) &amp;&amp; day(fecha[fecha])=VALUE(MID(@prFechaDiaria,7,2))) --misma fecha año anterior
+						        || Fecha[fecha]&gt;DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2))-7 &amp;&amp; Fecha[id]&lt;=value(@prFechaDiaria) --ultimos 7 dias
+						        ) 
+						 
+                        ,"Interes Bs",[Interes Bs]
+                         ,"Saldo Bs con BSEI",[Saldo Bs con BSEI] 
+
+                         ,"Interes ANT año Bs",[Interes ANT año Bs]
+						 ,"Saldo ANT año Bs", [Saldo ANT año Bs] 
+
+						 ,"Interes ANT mes Bs",[Interes ANT mes Bs]
+						 ,"Saldo ANT mes Bs", [Saldo ANT mes Bs] 
+
+						 ,"Interes ANT dia Bs",[Interes ANT dia Bs]
+						 ,"Saldo ANT dia Bs", [Saldo ANT dia Bs] 
+				 
+                )
+                ,not (ISBLANK(Captacion[recurso]))
+               -- , NOT (Cliente[Clasificacion SIF] in {"Interbancarios","Bonos Subordinados","Subordinadas Exterior"} )
+                 --Persona Natural,Persona Juridica,Entidades Financieras,Institucionales,Fiscales,Institución Del Sector Privado,Entidades Financieras Medpl
+                                                   
+        )
+     --    ,"id",convert(Fecha[fecha],INTEGER)
+        ,"fecha variacion año",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)  
+        ,"fecha variacion mes",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+        ,"fecha variacion ant",DATEADD(Fecha[fecha],-1,day)          
+        )</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>fecha</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[fecha]</HierarchyUniqueName>
+                    <LevelName>fecha</LevelName>
+                    <UniqueName>[Fecha].[fecha].[fecha]</UniqueName>
+                  </ID>
+                  <ItemCaption>fecha</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Captacion</DimensionName>
+                    <HierarchyName>recurso</HierarchyName>
+                    <HierarchyUniqueName>[Captacion].[recurso]</HierarchyUniqueName>
+                    <LevelName>recurso</LevelName>
+                    <UniqueName>[Captacion].[recurso].[recurso]</UniqueName>
+                  </ID>
+                  <ItemCaption>recurso</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Cliente</DimensionName>
+                    <HierarchyName>participacionEstatal</HierarchyName>
+                    <HierarchyUniqueName>[Cliente].[participacionEstatal]</HierarchyUniqueName>
+                    <LevelName>participacionEstatal</LevelName>
+                    <UniqueName>[Cliente].[participacionEstatal].[participacionEstatal]</UniqueName>
+                  </ID>
+                  <ItemCaption>participacionEstatal</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Cliente</DimensionName>
+                    <HierarchyName>Tipo Depositante</HierarchyName>
+                    <HierarchyUniqueName>[Cliente].[Tipo Depositante]</HierarchyUniqueName>
+                    <LevelName>Tipo Depositante</LevelName>
+                    <UniqueName>[Cliente].[Tipo Depositante].[Tipo Depositante]</UniqueName>
+                  </ID>
+                  <ItemCaption>Tipo Depositante</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Cliente</DimensionName>
+                    <HierarchyName>Clasificacion SIF</HierarchyName>
+                    <HierarchyUniqueName>[Cliente].[Clasificacion SIF]</HierarchyUniqueName>
+                    <LevelName>Clasificacion SIF</LevelName>
+                    <UniqueName>[Cliente].[Clasificacion SIF].[Clasificacion SIF]</UniqueName>
+                  </ID>
+                  <ItemCaption>Clasificacion SIF</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Captacion</DimensionName>
+                    <HierarchyName>productoSinMoneda</HierarchyName>
+                    <HierarchyUniqueName>[Captacion].[productoSinMoneda]</HierarchyUniqueName>
+                    <LevelName>productoSinMoneda</LevelName>
+                    <UniqueName>[Captacion].[productoSinMoneda].[productoSinMoneda]</UniqueName>
+                  </ID>
+                  <ItemCaption>productoSinMoneda</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo Bs con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo Bs con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo Bs con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes ANT año Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes ANT año Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo ANT año Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo ANT año Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes ANT mes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes ANT mes Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo ANT mes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo ANT mes Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes ANT dia Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes ANT dia Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo ANT dia Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo ANT dia Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha variacion año]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha variacion año</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha variacion mes]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha variacion mes</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha variacion ant]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha variacion ant</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>DEFINE  
+MEASURE 'Saldo Captacion'[Interes Bs] = calculate(SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', [Tasa]*[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))
+MEASURE 'Saldo Captacion'[Interes ANT año Bs] = CALCULATE('Saldo Captacion'[Interes Bs] ,PREVIOUSYEAR(LASTDATE(Fecha[fecha])))
+MEASURE 'Saldo Captacion'[Saldo ANT año Bs] = CALCULATE([Saldo Bs con BSEI] ,PREVIOUSYEAR(LASTDATE(Fecha[fecha])))  
+MEASURE 'Saldo Captacion'[Interes ANT mes Bs] = CALCULATE('Saldo Captacion'[Interes Bs] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+MEASURE 'Saldo Captacion'[Saldo ANT mes Bs] = CALCULATE([Saldo Bs con BSEI] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+MEASURE 'Saldo Captacion'[Interes ANT dia Bs] = CALCULATE('Saldo Captacion'[Interes Bs] ,LASTDATE(Fecha[FECHA]))
+MEASURE 'Saldo Captacion'[Saldo ANT dia Bs] =  CALCULATE( [Saldo Bs con BSEI], LASTDATE(Fecha[FECHA]))  
+
+EVALUATE
+ ADDCOLUMNS(
+   CALCULATETABLE(
+        SUMMARIZECOLUMNS(Fecha[Fecha]
+                         ,Captacion[recurso]        
+                         ,Cliente[participacionEstatal]
+                         ,Cliente[Tipo Depositante]                         
+                         ,Cliente[Clasificacion SIF]
+                         ,Captacion[productoSinMoneda]
+						,filter(fecha,
+						        (Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; month(Fecha[fecha])=12 &amp;&amp; YEAR (Fecha[fecha] ) &gt;= value(Mid(@prFechaDiaria,1,4))-1) --saldo anual del ultimo año
+						        ||(Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; year(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4)) &amp;&amp; Fecha[id]&lt;value(@prFechaDiaria)) --saldo mensual deL año ACTUAL
+						        ||(YEAR(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4))-1 &amp;&amp; month(Fecha[fecha])=value(MID(@prFechaDiaria,5,2)) &amp;&amp; day(fecha[fecha])=VALUE(MID(@prFechaDiaria,7,2))) --misma fecha año anterior
+						        || Fecha[fecha]&gt;DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2))-7 &amp;&amp; Fecha[id]&lt;=value(@prFechaDiaria) --ultimos 7 dias
+						        ) 
+						 
+                        ,"Interes Bs",[Interes Bs]
+                         ,"Saldo Bs con BSEI",[Saldo Bs con BSEI] 
+
+                         ,"Interes ANT año Bs",[Interes ANT año Bs]
+						 ,"Saldo ANT año Bs", [Saldo ANT año Bs] 
+
+						 ,"Interes ANT mes Bs",[Interes ANT mes Bs]
+						 ,"Saldo ANT mes Bs", [Saldo ANT mes Bs] 
+
+						 ,"Interes ANT dia Bs",[Interes ANT dia Bs]
+						 ,"Saldo ANT dia Bs", [Saldo ANT dia Bs] 
+				 
+                )
+                ,not (ISBLANK(Captacion[recurso]))
+               -- , NOT (Cliente[Clasificacion SIF] in {"Interbancarios","Bonos Subordinados","Subordinadas Exterior"} )
+                 --Persona Natural,Persona Juridica,Entidades Financieras,Institucionales,Fiscales,Institución Del Sector Privado,Entidades Financieras Medpl
+                                                   
+        )
+     --    ,"id",convert(Fecha[fecha],INTEGER)
+        ,"fecha variacion año",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)  
+        ,"fecha variacion mes",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+        ,"fecha variacion ant",DATEADD(Fecha[fecha],-1,day)          
+        )</Statement>
+            <ParameterDefinitions>
+              <ParameterDefinition>
+                <Name>prFechaDiaria</Name>
+                <DefaultValues>
+                  <DefaultValue>20220501</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaDiaria</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+              </ParameterDefinition>
+            </ParameterDefinitions>
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="fecha">
+        <DataField>Fecha[fecha]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="recurso">
+        <DataField>Captacion[recurso]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="participacionEstatal">
+        <DataField>Cliente[participacionEstatal]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Tipo_Depositante">
+        <DataField>Cliente[Tipo Depositante]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Clasificacion_SIF">
+        <DataField>Cliente[Clasificacion SIF]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="productoSinMoneda">
+        <DataField>Captacion[productoSinMoneda]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Bs_con_BSEI">
+        <DataField>[Saldo Bs con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Interes_Bs">
+        <DataField>[Interes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Interes_ANT_año_Bs">
+        <DataField>[Interes ANT año Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_ANT_año_Bs">
+        <DataField>[Saldo ANT año Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_año">
+        <DataField>[fecha variacion año]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Interes_ANT_mes_Bs">
+        <DataField>[Interes ANT mes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_ANT_mes_Bs">
+        <DataField>[Saldo ANT mes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_mes">
+        <DataField>[fecha variacion mes]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Interes_ANT_dia_Bs">
+        <DataField>[Interes ANT dia Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_ANT_dia_Bs">
+        <DataField>[Saldo ANT dia Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion_ant">
+        <DataField>[fecha variacion ant]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

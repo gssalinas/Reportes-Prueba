@@ -1,0 +1,235 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="prFechaDiaria">
+          <DefaultValue>20220317</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>
+DEFINE
+MEASURE 'Saldo Captacion'[Interes Bs] = calculate(SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', [Tasa]*[montoBs])/100 
+                                                  ,LASTDATE(fecha[fecha]))
+MEASURE 'Saldo Captacion'[Saldo Usd CCT] =  CALCULATE( [Saldo USD],Captacion[recurso]="CCT")
+MEASURE 'Saldo Captacion'[Saldo Usd CAH]  =  CALCULATE( [Saldo USD],Captacion[recurso]="CAH")
+MEASURE 'Saldo Captacion'[Saldo Usd DPF] =  CALCULATE( [Saldo USD], Captacion[recurso]="DPF")
+MEASURE 'Saldo Captacion'[Saldo Usd TL] =  CALCULATE( [Saldo USD], 'Saldo Captacion')   
+MEASURE 'Saldo Captacion'[Cant Contratos] =  CALCULATE( [Cantidad de Contratos],'Saldo Captacion')                                                          
+MEASURE 'Saldo Captacion'[Contratos Saldo cero] =  CALCULATE([Cantidad de Contratos] ,filter('Saldo Captacion', [Saldo Bs]=0))  
+MEASURE 'Saldo Captacion'[Saldo Bs TL] =  CALCULATE( [Saldo Bs], 'Saldo Captacion')   
+ 
+EVALUATE
+CALCULATETABLE(
+ADDCOLUMNS(
+  SUMMARIZE(PAF
+  , PAF[Cod Agencia]
+            ,PAF[Nombre Agencia]
+            )
+ , "Saldo Usd CCT", [Saldo Usd CCT]/1000
+ , "Saldo Usd CAH", [Saldo Usd CAH]/1000
+ , "Saldo Usd DPF", [Saldo Usd DPF]/1000
+ , "Saldo Usd TL", [Saldo Usd TL]/1000
+ ,"Cantidad de Contratos",[Cant Contratos]
+ ,"Contratos Saldo cero",[Contratos Saldo cero]
+ ,"Interes Bs",[Interes Bs]
+ ,"Saldo Bs",[Saldo Bs TL]	 
+ )
+ ,FILTER(ALL(PAF[Nombre Agencia])
+       ,NOT(SEARCH("inhabilitado",PAF[Nombre Agencia],1,0))) 
+ ,not (PAF[Cod Agencia] in {164,136,161,174,207,115}      )
+ , LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+  ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica"}
+)</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Cod Agencia</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Cod Agencia]</HierarchyUniqueName>
+                    <LevelName>Cod Agencia</LevelName>
+                    <UniqueName>[PAF].[Cod Agencia].[Cod Agencia]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cod Agencia</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Nombre Agencia</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Nombre Agencia]</HierarchyUniqueName>
+                    <LevelName>Nombre Agencia</LevelName>
+                    <UniqueName>[PAF].[Nombre Agencia].[Nombre Agencia]</UniqueName>
+                  </ID>
+                  <ItemCaption>Nombre Agencia</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Cantidad de Contratos</MeasureName>
+                    <UniqueName>[Measures].[Cantidad de Contratos]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cantidad de Contratos</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo Bs</MeasureName>
+                    <UniqueName>[Measures].[Saldo Bs]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo Usd CCT]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo Usd CCT</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo Usd CAH]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo Usd CAH</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo Usd DPF]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo Usd DPF</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo Usd TL]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo Usd TL</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Contratos Saldo cero]</ColumnName>
+                  </ID>
+                  <ItemCaption>Contratos Saldo cero</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes Bs</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>
+DEFINE
+MEASURE 'Saldo Captacion'[Interes Bs] = calculate(SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', [Tasa]*[montoBs])/100 
+                                                  ,LASTDATE(fecha[fecha]))
+MEASURE 'Saldo Captacion'[Saldo Usd CCT] =  CALCULATE( [Saldo USD],Captacion[recurso]="CCT")
+MEASURE 'Saldo Captacion'[Saldo Usd CAH]  =  CALCULATE( [Saldo USD],Captacion[recurso]="CAH")
+MEASURE 'Saldo Captacion'[Saldo Usd DPF] =  CALCULATE( [Saldo USD], Captacion[recurso]="DPF")
+MEASURE 'Saldo Captacion'[Saldo Usd TL] =  CALCULATE( [Saldo USD], 'Saldo Captacion')   
+MEASURE 'Saldo Captacion'[Cant Contratos] =  CALCULATE( [Cantidad de Contratos],'Saldo Captacion')                                                          
+MEASURE 'Saldo Captacion'[Contratos Saldo cero] =  CALCULATE([Cantidad de Contratos] ,filter('Saldo Captacion', [Saldo Bs]=0))  
+MEASURE 'Saldo Captacion'[Saldo Bs TL] =  CALCULATE( [Saldo Bs], 'Saldo Captacion')   
+ 
+EVALUATE
+CALCULATETABLE(
+ADDCOLUMNS(
+  SUMMARIZE(PAF
+  , PAF[Cod Agencia]
+            ,PAF[Nombre Agencia]
+            )
+ , "Saldo Usd CCT", [Saldo Usd CCT]/1000
+ , "Saldo Usd CAH", [Saldo Usd CAH]/1000
+ , "Saldo Usd DPF", [Saldo Usd DPF]/1000
+ , "Saldo Usd TL", [Saldo Usd TL]/1000
+ ,"Cantidad de Contratos",[Cant Contratos]
+ ,"Contratos Saldo cero",[Contratos Saldo cero]
+ ,"Interes Bs",[Interes Bs]
+ ,"Saldo Bs",[Saldo Bs TL]	 
+ )
+ ,FILTER(ALL(PAF[Nombre Agencia])
+       ,NOT(SEARCH("inhabilitado",PAF[Nombre Agencia],1,0))) 
+ ,not (PAF[Cod Agencia] in {164,136,161,174,207,115}      )
+ , LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+  ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica"}
+)</Statement>
+            <ParameterDefinitions>
+              <ParameterDefinition>
+                <Name>prFechaDiaria</Name>
+                <DefaultValues>
+                  <DefaultValue>20220317</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaDiaria</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+              </ParameterDefinition>
+            </ParameterDefinitions>
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="Cod_Agencia">
+        <DataField>PAF[Cod Agencia]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Nombre_Agencia">
+        <DataField>PAF[Nombre Agencia]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Interes_Bs">
+        <DataField>[Interes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cantidad_de_Contratos">
+        <DataField>[Cantidad de Contratos]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Bs">
+        <DataField>[Saldo Bs]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Usd_CCT">
+        <DataField>[Saldo Usd CCT]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Usd_CAH">
+        <DataField>[Saldo Usd CAH]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Usd_TL">
+        <DataField>[Saldo Usd TL]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Usd_DPF">
+        <DataField>[Saldo Usd DPF]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Contratos_Saldo_cero">
+        <DataField>[Contratos Saldo cero]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

@@ -1,0 +1,328 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="prFechaDiaria">
+          <DefaultValue>20220601</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+        <DataSetParameter Name="prFechaHasta">
+          <DefaultValue>20220630</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>DEFINE 
+MEASURE 'Saldo Captacion'[Saldo MN&lt;700] =  CALCULATE(sumx(filter(Captacion,Captacion[moneda]=1 &amp;&amp; Captacion[montoApertura]&lt;700),
+                                                    Captacion[Monto Apertura USD]),'Saldo Captacion')
+MEASURE 'Saldo Captacion'[Saldo MN&gt;=700] =  CALCULATE(sumx(filter(Captacion,Captacion[moneda]=1 &amp;&amp; Captacion[montoApertura]&gt;=700),
+                                                    Captacion[Monto Apertura USD]),'Saldo Captacion')
+MEASURE 'Saldo Captacion'[Saldo ME&lt;100] =  CALCULATE(sumx(filter(Captacion,Captacion[moneda]=2 &amp;&amp; Captacion[Monto Apertura USD]&lt;100),
+                                                    Captacion[Monto Apertura USD]),'Saldo Captacion')
+MEASURE 'Saldo Captacion'[Saldo ME&gt;=100] =  CALCULATE(sumx(filter(Captacion,Captacion[moneda]=2 &amp;&amp; Captacion[Monto Apertura USD]&gt;=100),
+                                                    Captacion[Monto Apertura USD]),'Saldo Captacion')
+MEASURE 'Saldo Captacion'[Cant MN&lt;700] =  CALCULATE([Cantidad de Contratos Ult. Dia],filter(Captacion,Captacion[moneda]=1 &amp;&amp; Captacion[montoApertura]&lt;700))                                                    
+MEASURE 'Saldo Captacion'[Cant MN&gt;=700] =   CALCULATE([Cantidad de Contratos Ult. Dia],filter(Captacion,Captacion[moneda]=1 &amp;&amp; Captacion[montoApertura]&gt;=700))
+MEASURE 'Saldo Captacion'[Cant ME&lt;100] =  CALCULATE([Cantidad de Contratos Ult. Dia],filter(Captacion,Captacion[moneda]=2 &amp;&amp; Captacion[Monto Apertura USD]&lt;100))
+MEASURE 'Saldo Captacion'[Cant ME&gt;=100] =   CALCULATE([Cantidad de Contratos Ult. Dia],filter(Captacion,Captacion[moneda]=2 &amp;&amp; Captacion[Monto Apertura USD]&gt;=100))
+EVALUATE
+	CALCULATETABLE(
+	          ADDCOLUMNS(
+				SUMMARIZE('Saldo Captacion'
+				          ,PAF[Sucursal]
+						  ,PAF[Zonal]
+						  ,PAF[Cod Agencia]
+				          ,PAF[Nombre Agencia]
+		                  ,Captacion[moneda]
+				         )
+	                 ,"Saldo MN&lt;700",[Saldo MN&lt;700]
+	                 ,"Saldo MN&gt;=700",[Saldo MN&gt;=700]
+	                 ,"Saldo ME&lt;100",[Saldo ME&lt;100]
+	                 ,"Saldo ME&gt;=100",[Saldo ME&gt;=100]	
+	                 ,"Cant MN&lt;700",[Cant MN&lt;700]	
+	                 ,"Cant MN&gt;=700",[Cant MN&gt;=700]
+	                 ,"Cant ME&lt;100",[Cant ME&lt;100]
+	                 ,"Cant ME&gt;=100",[Cant ME&gt;=100]	
+					 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+					 ,"Saldo USD con BSEI",[Monto Apertura USD]
+					    )
+			,Captacion[recurso]="CAH"    	    
+			,Fecha[fecha]&gt;= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)) &amp;&amp;
+			  Fecha[fecha]&lt;= DATE(MID(@prFechaHasta,1,4),MID(@prFechaHasta,5,2),MID(@prFechaHasta,7,2))
+			,'Fecha Apertura'[fecha]&gt;= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)) &amp;&amp;
+			  'Fecha Apertura'[fecha]&lt;= DATE(MID(@prFechaHasta,1,4),MID(@prFechaHasta,5,2),MID(@prFechaHasta,7,2))			  
+			,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras","Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+			)</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Sucursal</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Sucursal]</HierarchyUniqueName>
+                    <LevelName>Sucursal</LevelName>
+                    <UniqueName>[PAF].[Sucursal].[Sucursal]</UniqueName>
+                  </ID>
+                  <ItemCaption>Sucursal</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Zonal</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Zonal]</HierarchyUniqueName>
+                    <LevelName>Zonal</LevelName>
+                    <UniqueName>[PAF].[Zonal].[Zonal]</UniqueName>
+                  </ID>
+                  <ItemCaption>Zonal</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Cod Agencia</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Cod Agencia]</HierarchyUniqueName>
+                    <LevelName>Cod Agencia</LevelName>
+                    <UniqueName>[PAF].[Cod Agencia].[Cod Agencia]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cod Agencia</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Nombre Agencia</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Nombre Agencia]</HierarchyUniqueName>
+                    <LevelName>Nombre Agencia</LevelName>
+                    <UniqueName>[PAF].[Nombre Agencia].[Nombre Agencia]</UniqueName>
+                  </ID>
+                  <ItemCaption>Nombre Agencia</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Captacion</DimensionName>
+                    <HierarchyName>moneda</HierarchyName>
+                    <HierarchyUniqueName>[Captacion].[moneda]</HierarchyUniqueName>
+                    <LevelName>moneda</LevelName>
+                    <UniqueName>[Captacion].[moneda].[moneda]</UniqueName>
+                  </ID>
+                  <ItemCaption>moneda</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Cantidad de Contratos</MeasureName>
+                    <UniqueName>[Measures].[Cantidad de Contratos]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cantidad de Contratos</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo USD con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo USD con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo USD con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo MN&lt;700]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo MN&lt;700</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo MN&gt;=700]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo MN&gt;=700</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo ME&lt;100]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo ME&lt;100</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo ME&gt;=100]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo ME&gt;=100</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Cant MN&lt;700]</ColumnName>
+                  </ID>
+                  <ItemCaption>Cant MN&lt;700</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Cant MN&gt;=700]</ColumnName>
+                  </ID>
+                  <ItemCaption>Cant MN&gt;=700</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Cant ME&lt;100]</ColumnName>
+                  </ID>
+                  <ItemCaption>Cant ME&lt;100</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Cant ME&gt;=100]</ColumnName>
+                  </ID>
+                  <ItemCaption>Cant ME&gt;=100</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>DEFINE 
+MEASURE 'Saldo Captacion'[Saldo MN&lt;700] =  CALCULATE(sumx(filter(Captacion,Captacion[moneda]=1 &amp;&amp; Captacion[montoApertura]&lt;700),
+                                                    Captacion[Monto Apertura USD]),'Saldo Captacion')
+MEASURE 'Saldo Captacion'[Saldo MN&gt;=700] =  CALCULATE(sumx(filter(Captacion,Captacion[moneda]=1 &amp;&amp; Captacion[montoApertura]&gt;=700),
+                                                    Captacion[Monto Apertura USD]),'Saldo Captacion')
+MEASURE 'Saldo Captacion'[Saldo ME&lt;100] =  CALCULATE(sumx(filter(Captacion,Captacion[moneda]=2 &amp;&amp; Captacion[Monto Apertura USD]&lt;100),
+                                                    Captacion[Monto Apertura USD]),'Saldo Captacion')
+MEASURE 'Saldo Captacion'[Saldo ME&gt;=100] =  CALCULATE(sumx(filter(Captacion,Captacion[moneda]=2 &amp;&amp; Captacion[Monto Apertura USD]&gt;=100),
+                                                    Captacion[Monto Apertura USD]),'Saldo Captacion')
+MEASURE 'Saldo Captacion'[Cant MN&lt;700] =  CALCULATE([Cantidad de Contratos Ult. Dia],filter(Captacion,Captacion[moneda]=1 &amp;&amp; Captacion[montoApertura]&lt;700))                                                    
+MEASURE 'Saldo Captacion'[Cant MN&gt;=700] =   CALCULATE([Cantidad de Contratos Ult. Dia],filter(Captacion,Captacion[moneda]=1 &amp;&amp; Captacion[montoApertura]&gt;=700))
+MEASURE 'Saldo Captacion'[Cant ME&lt;100] =  CALCULATE([Cantidad de Contratos Ult. Dia],filter(Captacion,Captacion[moneda]=2 &amp;&amp; Captacion[Monto Apertura USD]&lt;100))
+MEASURE 'Saldo Captacion'[Cant ME&gt;=100] =   CALCULATE([Cantidad de Contratos Ult. Dia],filter(Captacion,Captacion[moneda]=2 &amp;&amp; Captacion[Monto Apertura USD]&gt;=100))
+EVALUATE
+	CALCULATETABLE(
+	          ADDCOLUMNS(
+				SUMMARIZE('Saldo Captacion'
+				          ,PAF[Sucursal]
+						  ,PAF[Zonal]
+						  ,PAF[Cod Agencia]
+				          ,PAF[Nombre Agencia]
+		                  ,Captacion[moneda]
+				         )
+	                 ,"Saldo MN&lt;700",[Saldo MN&lt;700]
+	                 ,"Saldo MN&gt;=700",[Saldo MN&gt;=700]
+	                 ,"Saldo ME&lt;100",[Saldo ME&lt;100]
+	                 ,"Saldo ME&gt;=100",[Saldo ME&gt;=100]	
+	                 ,"Cant MN&lt;700",[Cant MN&lt;700]	
+	                 ,"Cant MN&gt;=700",[Cant MN&gt;=700]
+	                 ,"Cant ME&lt;100",[Cant ME&lt;100]
+	                 ,"Cant ME&gt;=100",[Cant ME&gt;=100]	
+					 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+					 ,"Saldo USD con BSEI",[Monto Apertura USD]
+					    )
+			,Captacion[recurso]="CAH"    	    
+			,Fecha[fecha]&gt;= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)) &amp;&amp;
+			  Fecha[fecha]&lt;= DATE(MID(@prFechaHasta,1,4),MID(@prFechaHasta,5,2),MID(@prFechaHasta,7,2))
+			,'Fecha Apertura'[fecha]&gt;= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)) &amp;&amp;
+			  'Fecha Apertura'[fecha]&lt;= DATE(MID(@prFechaHasta,1,4),MID(@prFechaHasta,5,2),MID(@prFechaHasta,7,2))			  
+			,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras","Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}
+			)</Statement>
+            <ParameterDefinitions>
+              <ParameterDefinition>
+                <Name>prFechaDiaria</Name>
+                <DefaultValues>
+                  <DefaultValue>20220601</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaDiaria</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+              </ParameterDefinition>
+              <ParameterDefinition>
+                <Name>prFechaHasta</Name>
+                <DefaultValues>
+                  <DefaultValue>20220630</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaHasta</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+              </ParameterDefinition>
+            </ParameterDefinitions>
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="Sucursal">
+        <DataField>PAF[Sucursal]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Zonal">
+        <DataField>PAF[Zonal]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cod_Agencia">
+        <DataField>PAF[Cod Agencia]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="moneda">
+        <DataField>Captacion[moneda]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Nombre_Agencia">
+        <DataField>PAF[Nombre Agencia]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_USD_con_BSEI">
+        <DataField>[Saldo USD con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Cantidad_de_Contratos">
+        <DataField>[Cantidad de Contratos]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_MN_700">
+        <DataField>[Saldo MN&lt;700]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_MN__700">
+        <DataField>[Saldo MN&gt;=700]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_ME_100">
+        <DataField>[Saldo ME&lt;100]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_ME__100">
+        <DataField>[Saldo ME&gt;=100]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cant_MN_700">
+        <DataField>[Cant MN&lt;700]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cant_MN__700">
+        <DataField>[Cant MN&gt;=700]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cant_ME_100">
+        <DataField>[Cant ME&lt;100]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cant_ME__100">
+        <DataField>[Cant ME&gt;=100]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

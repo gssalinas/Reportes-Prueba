@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1267
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F14B399A-7131-4C87-9E4B-1186C45EF12D}") = "fsl.bi.ssrs.diarioscap", "fsl.bi.ssrs.diarioscap\fsl.bi.ssrs.diarioscap.rptproj", "{A1863BA5-4872-4776-8CE1-D1A93E6E9D43}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Default = Debug|Default
+		DebugLocal|Default = DebugLocal|Default
+		Release|Default = Release|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A1863BA5-4872-4776-8CE1-D1A93E6E9D43}.Debug|Default.ActiveCfg = Debug
+		{A1863BA5-4872-4776-8CE1-D1A93E6E9D43}.Debug|Default.Build.0 = Debug
+		{A1863BA5-4872-4776-8CE1-D1A93E6E9D43}.Debug|Default.Deploy.0 = Debug
+		{A1863BA5-4872-4776-8CE1-D1A93E6E9D43}.DebugLocal|Default.ActiveCfg = DebugLocal
+		{A1863BA5-4872-4776-8CE1-D1A93E6E9D43}.DebugLocal|Default.Build.0 = DebugLocal
+		{A1863BA5-4872-4776-8CE1-D1A93E6E9D43}.Release|Default.ActiveCfg = Release
+		{A1863BA5-4872-4776-8CE1-D1A93E6E9D43}.Release|Default.Build.0 = Release
+		{A1863BA5-4872-4776-8CE1-D1A93E6E9D43}.Release|Default.Deploy.0 = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {51784B82-73A4-4235-8048-81A415AC8192}
+	EndGlobalSection
+EndGlobal

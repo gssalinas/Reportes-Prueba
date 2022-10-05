@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <CommandText>EVALUATE
+	SUMMARIZE(
+		'Fecha'
+		,'Fecha'[id]
+	 	,'Fecha'[fechaStr]
+)
+order by 'Fecha'[id] DESC</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>id</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[id]</HierarchyUniqueName>
+                    <LevelName>id</LevelName>
+                    <UniqueName>[Fecha].[id].[id]</UniqueName>
+                  </ID>
+                  <ItemCaption>id</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>fechastr</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[fechastr]</HierarchyUniqueName>
+                    <LevelName>fechastr</LevelName>
+                    <UniqueName>[Fecha].[fechastr].[fechastr]</UniqueName>
+                  </ID>
+                  <ItemCaption>fechastr</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>EVALUATE
+	SUMMARIZE(
+		'Fecha'
+		,'Fecha'[id]
+	 	,'Fecha'[fechaStr]
+)
+order by 'Fecha'[id] DESC</Statement>
+            <ParameterDefinitions />
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="id">
+        <DataField>Fecha[id]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fechastr">
+        <DataField>Fecha[fechastr]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

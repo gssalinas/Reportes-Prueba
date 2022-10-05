@@ -1,0 +1,404 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <CommandText>DEFINE                                                         
+MEASURE 'Saldo Captacion'[Interes Bs] = SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                     SUMX('Saldo BSEI',     [Tasa]*[montoBs])/100
+--saldo anual de los ultimos 5 años,  total general	
+EVALUATE
+UNION(
+   ADDCOLUMNS(
+   CALCULATETABLE(
+		SUMMARIZECOLUMNS(Fecha[Fecha]
+					     ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+						 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			    )
+			    ,fecha[esFindeMes] = true()
+			    ,MONTH(Fecha[fecha])=12
+		)
+        ,"Var Saldo",0
+	    ,"Var Contrato", 0
+		,"Var Tpp",0	
+		,"RANGO","ANUAL"
+		,"fecha variacion",date(1900,01,01)		
+		)
+,
+
+--saldo mensual deL año ACTUAL,  total general
+   ADDCOLUMNS(
+   CALCULATETABLE(
+		SUMMARIZECOLUMNS(Fecha[Fecha]
+					     ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+						 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			    )
+			    ,fecha[esFindeMes] = true()
+               ,DATESBETWEEN(Fecha[fecha],date(YEAR(LASTDATE( Fecha[fecha])), 01,01),LASTDATE(Fecha[fecha]))     			    
+		)
+        ,"Var Saldo",0
+	    ,"Var Contrato", 0
+		,"Var Tpp",0	
+		,"RANGO","MENSUAL"
+		,"fecha variacion",date(1900,01,01)		
+		)
+		
+,
+--saldo diario ultimas 2 semanas,  total general	
+   ADDCOLUMNS(
+		SUMMARIZECOLUMNS(Fecha[Fecha],
+		                FILTER(fecha, fecha[semid] &gt;= max(fecha[semid])-1)
+					     ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+						 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			    )
+
+        ,"Var Saldo",0
+	    ,"Var Contrato", 0
+		,"Var Tpp",0	
+		,"RANGO","SEMANAL"
+		,"fecha variacion",date(1900,01,01)				
+		)
+,
+	ADDCOLUMNS(
+		CALCULATETABLE(
+			SUMMARIZECOLUMNS(Fecha[fecha]
+		                 ,"Saldo USD con BSEI", [Saldo USD con BSEI] --dato no usado
+						 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI] --dato no usado
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs] --dato no usado
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI] --dato no usado
+						 ,"Var Saldo",    [Variacion Año USD con BSEI]
+					     ,"Var Contrato", [Variacion Contratos Año con BSEI]
+				     	 ,"Var Tpp",      [Variacion Tpp Año con BSEI]
+			    )
+               ,LASTDATE(Fecha[fecha])
+			 )
+		,"RANGO","VARIACION"			 
+		,"fecha variacion",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)
+		)
+
+,
+	ADDCOLUMNS(
+		CALCULATETABLE(
+			SUMMARIZECOLUMNS(Fecha[fecha]
+		                 ,"Saldo USD con BSEI", [Saldo USD con BSEI] --dato no usado
+						 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI] --dato no usado
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs] --dato no usado
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI] --dato no usado
+						 ,"Var Saldo",[Variacion Mensual USD con BSEI]
+		  	             ,"Var Contrato", [Variacion Contratos Mensual con BSEI]
+			             ,"Var Tpp",[Variacion Tpp Mensual con BSEI]
+			    )
+               ,LASTDATE(Fecha[fecha])
+			 )
+		,"RANGO","VARIACION"			 
+		,"fecha variacion",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+		)
+
+,
+	ADDCOLUMNS(
+		CALCULATETABLE(
+			SUMMARIZECOLUMNS(Fecha[fecha]
+		                 ,"Saldo USD con BSEI", [Saldo USD con BSEI] --dato no usado
+						 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI] --dato no usado
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs] --dato no usado
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI] --dato no usado
+						 ,"Var Saldo",[Variacion Semanal USD con BSEI]
+						 ,"Var Contrato", [Variacion Contratos Semanal con BSEI]
+						 ,"Var Tpp",[Variacion Tpp Semanal con BSEI]	
+			    )
+               ,LASTDATE(Fecha[fecha])
+			 )
+		,"RANGO","VARIACION"			 
+		,"fecha variacion",DATEADD(Fecha[finSemana],-7,day)			
+		)
+,
+	ADDCOLUMNS(
+		CALCULATETABLE(
+			SUMMARIZECOLUMNS(Fecha[fecha]
+		                 ,"Saldo USD con BSEI", [Saldo USD con BSEI] --dato no usado
+						 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI] --dato no usado
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs] --dato no usado
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI] --dato no usado
+						 ,"Var Saldo",    [Variacion Diaria USD con BSEI]]]
+						 ,"Var Contrato", [Variacion Contratos Diaria con BSEI]
+						 ,"Var Tpp",      [Variacion Tpp Diaria con BSEI]	
+			    )
+               ,LASTDATE(Fecha[fecha])
+			 )
+		,"RANGO","VARIACION"			 
+		,"fecha variacion",PREVIOUSDAY(LASTDATE(Fecha[fecha]))			
+		)	
+)	</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>fecha</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[fecha]</HierarchyUniqueName>
+                    <LevelName>fecha</LevelName>
+                    <UniqueName>[Fecha].[fecha].[fecha]</UniqueName>
+                  </ID>
+                  <ItemCaption>fecha</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo USD con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo USD con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo USD con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Cantidad de Contratos</MeasureName>
+                    <UniqueName>[Measures].[Cantidad de Contratos]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cantidad de Contratos</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo Bs con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo Bs con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo Bs con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Var Saldo]</ColumnName>
+                  </ID>
+                  <ItemCaption>Var Saldo</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Var Contrato]</ColumnName>
+                  </ID>
+                  <ItemCaption>Var Contrato</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Var Tpp]</ColumnName>
+                  </ID>
+                  <ItemCaption>Var Tpp</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[RANGO]</ColumnName>
+                  </ID>
+                  <ItemCaption>RANGO</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[fecha variacion]</ColumnName>
+                  </ID>
+                  <ItemCaption>fecha variacion</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>DEFINE                                                         
+MEASURE 'Saldo Captacion'[Interes Bs] = SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                     SUMX('Saldo BSEI',     [Tasa]*[montoBs])/100
+--saldo anual de los ultimos 5 años,  total general	
+EVALUATE
+UNION(
+   ADDCOLUMNS(
+   CALCULATETABLE(
+		SUMMARIZECOLUMNS(Fecha[Fecha]
+					     ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+						 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			    )
+			    ,fecha[esFindeMes] = true()
+			    ,MONTH(Fecha[fecha])=12
+		)
+        ,"Var Saldo",0
+	    ,"Var Contrato", 0
+		,"Var Tpp",0	
+		,"RANGO","ANUAL"
+		,"fecha variacion",date(1900,01,01)		
+		)
+,
+
+--saldo mensual deL año ACTUAL,  total general
+   ADDCOLUMNS(
+   CALCULATETABLE(
+		SUMMARIZECOLUMNS(Fecha[Fecha]
+					     ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+						 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			    )
+			    ,fecha[esFindeMes] = true()
+               ,DATESBETWEEN(Fecha[fecha],date(YEAR(LASTDATE( Fecha[fecha])), 01,01),LASTDATE(Fecha[fecha]))     			    
+		)
+        ,"Var Saldo",0
+	    ,"Var Contrato", 0
+		,"Var Tpp",0	
+		,"RANGO","MENSUAL"
+		,"fecha variacion",date(1900,01,01)		
+		)
+		
+,
+--saldo diario ultimas 2 semanas,  total general	
+   ADDCOLUMNS(
+		SUMMARIZECOLUMNS(Fecha[Fecha],
+		                FILTER(fecha, fecha[semid] &gt;= max(fecha[semid])-1)
+					     ,"Saldo USD con BSEI", [Saldo USD con BSEI]
+						 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI]
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs]
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]
+			    )
+
+        ,"Var Saldo",0
+	    ,"Var Contrato", 0
+		,"Var Tpp",0	
+		,"RANGO","SEMANAL"
+		,"fecha variacion",date(1900,01,01)				
+		)
+,
+	ADDCOLUMNS(
+		CALCULATETABLE(
+			SUMMARIZECOLUMNS(Fecha[fecha]
+		                 ,"Saldo USD con BSEI", [Saldo USD con BSEI] --dato no usado
+						 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI] --dato no usado
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs] --dato no usado
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI] --dato no usado
+						 ,"Var Saldo",    [Variacion Año USD con BSEI]
+					     ,"Var Contrato", [Variacion Contratos Año con BSEI]
+				     	 ,"Var Tpp",      [Variacion Tpp Año con BSEI]
+			    )
+               ,LASTDATE(Fecha[fecha])
+			 )
+		,"RANGO","VARIACION"			 
+		,"fecha variacion",date(YEAR(LASTDATE( Fecha[fecha]))-1, 12,31)
+		)
+
+,
+	ADDCOLUMNS(
+		CALCULATETABLE(
+			SUMMARIZECOLUMNS(Fecha[fecha]
+		                 ,"Saldo USD con BSEI", [Saldo USD con BSEI] --dato no usado
+						 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI] --dato no usado
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs] --dato no usado
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI] --dato no usado
+						 ,"Var Saldo",[Variacion Mensual USD con BSEI]
+		  	             ,"Var Contrato", [Variacion Contratos Mensual con BSEI]
+			             ,"Var Tpp",[Variacion Tpp Mensual con BSEI]
+			    )
+               ,LASTDATE(Fecha[fecha])
+			 )
+		,"RANGO","VARIACION"			 
+		,"fecha variacion",EOMONTH(LASTDATE(Fecha[fecha]),-1)
+		)
+
+,
+	ADDCOLUMNS(
+		CALCULATETABLE(
+			SUMMARIZECOLUMNS(Fecha[fecha]
+		                 ,"Saldo USD con BSEI", [Saldo USD con BSEI] --dato no usado
+						 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI] --dato no usado
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs] --dato no usado
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI] --dato no usado
+						 ,"Var Saldo",[Variacion Semanal USD con BSEI]
+						 ,"Var Contrato", [Variacion Contratos Semanal con BSEI]
+						 ,"Var Tpp",[Variacion Tpp Semanal con BSEI]	
+			    )
+               ,LASTDATE(Fecha[fecha])
+			 )
+		,"RANGO","VARIACION"			 
+		,"fecha variacion",DATEADD(Fecha[finSemana],-7,day)			
+		)
+,
+	ADDCOLUMNS(
+		CALCULATETABLE(
+			SUMMARIZECOLUMNS(Fecha[fecha]
+		                 ,"Saldo USD con BSEI", [Saldo USD con BSEI] --dato no usado
+						 ,"Cantidad de Contratos",[Cantidad de Contratos con BSEI] --dato no usado
+						 ,"Interes Bs",'Saldo Captacion'[Interes Bs] --dato no usado
+						 ,"Saldo Bs con BSEI",[Saldo Bs con BSEI] --dato no usado
+						 ,"Var Saldo",    [Variacion Diaria USD con BSEI]]]
+						 ,"Var Contrato", [Variacion Contratos Diaria con BSEI]
+						 ,"Var Tpp",      [Variacion Tpp Diaria con BSEI]	
+			    )
+               ,LASTDATE(Fecha[fecha])
+			 )
+		,"RANGO","VARIACION"			 
+		,"fecha variacion",PREVIOUSDAY(LASTDATE(Fecha[fecha]))			
+		)	
+)	</Statement>
+            <ParameterDefinitions />
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="fecha">
+        <DataField>Fecha[fecha]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_USD_con_BSEI">
+        <DataField>[Saldo USD con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Cantidad_de_Contratos">
+        <DataField>[Cantidad de Contratos]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Bs_con_BSEI">
+        <DataField>[Saldo Bs con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Var_Saldo">
+        <DataField>[Var Saldo]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="RANGO">
+        <DataField>[RANGO]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Interes_Bs">
+        <DataField>[Interes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Var_Contrato">
+        <DataField>[Var Contrato]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Var_Tpp">
+        <DataField>[Var Tpp]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha_variacion">
+        <DataField>[fecha variacion]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

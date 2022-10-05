@@ -1,0 +1,784 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="prFechaDiaria">
+          <DefaultValue>20220602</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>DEFINE  
+
+MEASURE 'Saldo Captacion'[Interes Bs] = calculate(SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', [Tasa]*[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))
+MEASURE 'Saldo Captacion'[Interes ANT mes Bs] = CALCULATE('Saldo Captacion'[Interes Bs] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+MEASURE 'Saldo Captacion'[Saldo ANT mes Bs] = CALCULATE([Saldo Bs con BSEI] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+
+MEASURE 'Saldo Captacion'[Saldo Medio ANT mes USD] = CALCULATE([Saldo Medio BSEI USD],PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+EVALUATE
+
+CALCULATETABLE(
+    ADDCOLUMNS(
+	SUMMARIZECOLUMNS(PAF[Sigla Sucursal]
+	                 ,PAF[Nombre Agencia]
+	                 ,PAF[Cod Agencia]
+			         ,Fecha[Fecha]
+					 ,Fecha[mes]
+                     ,Producto[Captacion]
+					 ,Captacion[productoSinMoneda]
+					 ,Cliente[Clasificacion SIF]
+					 ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+                     ,"Saldo USD con BSEI", [Saldo USD con BSEI]/1000
+                     ,"Cantidad de Contratos",[Cantidad de Contratos Ult. Dia con BSEI]
+                     ,"Interes Bs",[Interes Bs]
+                     ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]          
+
+                     ,"Saldo USD Mes Anterior",[Saldo USD Mes Anterior con BSEI]/1000
+					 ,"Cant de Contratos Mes Anterior",[Cant de Contratos Mes Anterior con BSEI]
+					 ,"Interes ANT mes Bs",[Interes ANT mes Bs]
+					 ,"Saldo ANT mes Bs", [Saldo ANT mes Bs]
+					 ) 
+					 ,"orden agencia", SWITCH (PAF[Cod Agencia]
+														,100,10
+														,170,20
+														,110,30
+														,120,40
+														,160,50
+														,140,60
+														,200,70
+														,210,80
+														,180,90
+														,105,100
+														,115,110
+														,135,120
+														,150,130
+														,145,140
+														,155,150
+														,165,160
+														,175,170
+														,101,180
+														,185,190
+														,125,200
+														,195,210
+														,141,220
+														,106,230
+														,107,240
+														,190,250
+														,302,260
+														,108,270
+														,310,280
+														,201,290
+														,202,300
+														,204,310
+														,203,320
+														,205,330
+														,111,340
+														,103,350
+														,102,360
+														,312,370
+														,311,380
+														,324,390
+														,301,400
+														,104,410
+														,314,420
+														,211,430
+														,112,440
+														,304,450
+														,109,460
+														,116,470
+														,114,480
+														,206,490
+														,207,500
+														,208,510
+														,209,520
+														,113,530
+														,118,540
+														,117,550
+														,119,560
+														,601,570
+														,124,580
+														,212,590
+														,305,600
+														,121,610
+														,122,620
+														,315,630
+														,306,640
+														,123,650
+														,126,660
+														,127,670
+														,129,680
+														,213,690
+														,603,700
+														,316,710
+														,602,720
+														,215,730
+														,128,740
+														,309,750
+														,214,760
+														,308,770
+														,142,780
+														,313,790
+														,217,800
+														,216,810
+														,401,820
+														,402,830
+														,218,840
+														,403,850
+														,221,860
+														,604,870
+														,192,880
+														,131,890
+														,144,900
+														,220,910
+														,307,920
+														,317,930
+														,149,940
+														,219,950
+														,222,960
+														,151,970
+														,148,980
+														,156,990
+														,701,1000
+														,146,1010
+														,605,1020
+														,318,1030
+														,319,1040
+														,171,1050
+														,172,1060
+														,147,1070
+														,223,1080
+														,152,1090
+														,320,1100
+														,321,1110
+														,300,1120
+														,173,1130
+														,176,1140
+														,322,1150
+														,501,1160
+														,181,1170
+														,177,1180
+														,605,1020
+														,318,1030
+														,319,1040
+														,171,1050
+														,172,1060
+														,147,1070
+														,223,1080
+														,152,1090
+														,320,1100
+														,321,1110
+														,300,1120
+														,173,1130
+														,176,1140
+														,322,1150
+														,501,1160
+														,181,1170
+														,177,1180
+														,178,1190
+														,179,1200
+														,164,1210
+														,166,1220
+														,154,1230
+														,157,1240
+														,178,1190
+														,179,1200
+														,164,1210
+														,166,1220
+														,154,1230
+														,157,1240
+														,158,1250													
+														,161,1260
+														,162,1270
+														,167,1280
+														,325,1290
+														,139,1300
+														,163,1310
+														,168,1320
+														,159,1330
+														,132,1340
+														,184,1350
+														,183,1360
+														,182,1370
+														,169,1380
+														,186,1390
+														,187,1400
+														,189,1410
+														,606,1420
+														,224,1430
+														,188,1440
+														,193,1450
+														,326,1460
+														,323,1470
+														,134,1480
+														,136,1490
+														,198,1500
+														,153,1510
+														,197,1520
+														,143,1530
+														,191,1540
+														,851,1550
+														,225,1560
+														,853,1570
+														,852,1580
+														,803,1590
+														,854,1600
+														,856,1610
+														,862,1620
+														,859,1630
+														,864,1640
+														,327,1650
+														,858,1660
+														,226,1670
+														,863,1680
+														,861,1690
+														,860,1700
+														,857,1710
+														,866,1720
+														,865,1730
+														,868,1740
+														,869,1750
+														,804,1760
+														,870,1770
+														,871,1780
+														,872,1790
+														,867,1800
+														,855,1810
+														,751,1820
+														,873,1830
+														,850,8000
+														,299,8010
+														,300,8020
+														,600,8030
+														,399,8040
+														,400,8050
+														,199,8060
+														,700,8070
+														,500,8080
+														,802,8090
+														,750,8100
+														,650,8110
+														,133,9000
+														,137,9010
+														,138,9020
+														,194,9030
+														,196,9040
+														,303,9050,10000)
+			 )
+        ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras",
+                                         "Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}    
+         
+		)</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Sigla Sucursal</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Sigla Sucursal]</HierarchyUniqueName>
+                    <LevelName>Sigla Sucursal</LevelName>
+                    <UniqueName>[PAF].[Sigla Sucursal].[Sigla Sucursal]</UniqueName>
+                  </ID>
+                  <ItemCaption>Sigla Sucursal</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Nombre Agencia</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Nombre Agencia]</HierarchyUniqueName>
+                    <LevelName>Nombre Agencia</LevelName>
+                    <UniqueName>[PAF].[Nombre Agencia].[Nombre Agencia]</UniqueName>
+                  </ID>
+                  <ItemCaption>Nombre Agencia</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>PAF</DimensionName>
+                    <HierarchyName>Cod Agencia</HierarchyName>
+                    <HierarchyUniqueName>[PAF].[Cod Agencia]</HierarchyUniqueName>
+                    <LevelName>Cod Agencia</LevelName>
+                    <UniqueName>[PAF].[Cod Agencia].[Cod Agencia]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cod Agencia</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>fecha</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[fecha]</HierarchyUniqueName>
+                    <LevelName>fecha</LevelName>
+                    <UniqueName>[Fecha].[fecha].[fecha]</UniqueName>
+                  </ID>
+                  <ItemCaption>fecha</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>mes</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[mes]</HierarchyUniqueName>
+                    <LevelName>mes</LevelName>
+                    <UniqueName>[Fecha].[mes].[mes]</UniqueName>
+                  </ID>
+                  <ItemCaption>mes</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Producto</DimensionName>
+                    <HierarchyName>Captacion</HierarchyName>
+                    <HierarchyUniqueName>[Producto].[Captacion]</HierarchyUniqueName>
+                    <LevelName>Captacion</LevelName>
+                    <UniqueName>[Producto].[Captacion].[Captacion]</UniqueName>
+                  </ID>
+                  <ItemCaption>Captacion</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Captacion</DimensionName>
+                    <HierarchyName>productoSinMoneda</HierarchyName>
+                    <HierarchyUniqueName>[Captacion].[productoSinMoneda]</HierarchyUniqueName>
+                    <LevelName>productoSinMoneda</LevelName>
+                    <UniqueName>[Captacion].[productoSinMoneda].[productoSinMoneda]</UniqueName>
+                  </ID>
+                  <ItemCaption>productoSinMoneda</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Cliente</DimensionName>
+                    <HierarchyName>Clasificacion SIF</HierarchyName>
+                    <HierarchyUniqueName>[Cliente].[Clasificacion SIF]</HierarchyUniqueName>
+                    <LevelName>Clasificacion SIF</LevelName>
+                    <UniqueName>[Cliente].[Clasificacion SIF].[Clasificacion SIF]</UniqueName>
+                  </ID>
+                  <ItemCaption>Clasificacion SIF</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo USD con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo USD con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo USD con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Cantidad de Contratos</MeasureName>
+                    <UniqueName>[Measures].[Cantidad de Contratos]</UniqueName>
+                  </ID>
+                  <ItemCaption>Cantidad de Contratos</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Measure">
+                    <MeasureName>Saldo Bs con BSEI</MeasureName>
+                    <UniqueName>[Measures].[Saldo Bs con BSEI]</UniqueName>
+                  </ID>
+                  <ItemCaption>Saldo Bs con BSEI</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo USD Mes Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo USD Mes Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Cant de Contratos Mes Anterior]</ColumnName>
+                  </ID>
+                  <ItemCaption>Cant de Contratos Mes Anterior</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Interes ANT mes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Interes ANT mes Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Saldo ANT mes Bs]</ColumnName>
+                  </ID>
+                  <ItemCaption>Saldo ANT mes Bs</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[orden agencia]</ColumnName>
+                  </ID>
+                  <ItemCaption>orden agencia</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>DEFINE  
+
+MEASURE 'Saldo Captacion'[Interes Bs] = calculate(SUMX('Saldo Captacion',[Tasa]*[montoBs])/100 +
+                                                  SUMX('Saldo BSEI', [Tasa]*[montoBs])/100 
+                                              ,LASTDATE(fecha[fecha]))
+MEASURE 'Saldo Captacion'[Interes ANT mes Bs] = CALCULATE('Saldo Captacion'[Interes Bs] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+MEASURE 'Saldo Captacion'[Saldo ANT mes Bs] = CALCULATE([Saldo Bs con BSEI] ,PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+
+MEASURE 'Saldo Captacion'[Saldo Medio ANT mes USD] = CALCULATE([Saldo Medio BSEI USD],PREVIOUSMONTH((LASTDATE(Fecha[fecha]))))
+EVALUATE
+
+CALCULATETABLE(
+    ADDCOLUMNS(
+	SUMMARIZECOLUMNS(PAF[Sigla Sucursal]
+	                 ,PAF[Nombre Agencia]
+	                 ,PAF[Cod Agencia]
+			         ,Fecha[Fecha]
+					 ,Fecha[mes]
+                     ,Producto[Captacion]
+					 ,Captacion[productoSinMoneda]
+					 ,Cliente[Clasificacion SIF]
+					 ,LASTDATE(Fecha[fecha]= DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2)))
+                     ,"Saldo USD con BSEI", [Saldo USD con BSEI]/1000
+                     ,"Cantidad de Contratos",[Cantidad de Contratos Ult. Dia con BSEI]
+                     ,"Interes Bs",[Interes Bs]
+                     ,"Saldo Bs con BSEI",[Saldo Bs con BSEI]          
+
+                     ,"Saldo USD Mes Anterior",[Saldo USD Mes Anterior con BSEI]/1000
+					 ,"Cant de Contratos Mes Anterior",[Cant de Contratos Mes Anterior con BSEI]
+					 ,"Interes ANT mes Bs",[Interes ANT mes Bs]
+					 ,"Saldo ANT mes Bs", [Saldo ANT mes Bs]
+					 ) 
+					 ,"orden agencia", SWITCH (PAF[Cod Agencia]
+														,100,10
+														,170,20
+														,110,30
+														,120,40
+														,160,50
+														,140,60
+														,200,70
+														,210,80
+														,180,90
+														,105,100
+														,115,110
+														,135,120
+														,150,130
+														,145,140
+														,155,150
+														,165,160
+														,175,170
+														,101,180
+														,185,190
+														,125,200
+														,195,210
+														,141,220
+														,106,230
+														,107,240
+														,190,250
+														,302,260
+														,108,270
+														,310,280
+														,201,290
+														,202,300
+														,204,310
+														,203,320
+														,205,330
+														,111,340
+														,103,350
+														,102,360
+														,312,370
+														,311,380
+														,324,390
+														,301,400
+														,104,410
+														,314,420
+														,211,430
+														,112,440
+														,304,450
+														,109,460
+														,116,470
+														,114,480
+														,206,490
+														,207,500
+														,208,510
+														,209,520
+														,113,530
+														,118,540
+														,117,550
+														,119,560
+														,601,570
+														,124,580
+														,212,590
+														,305,600
+														,121,610
+														,122,620
+														,315,630
+														,306,640
+														,123,650
+														,126,660
+														,127,670
+														,129,680
+														,213,690
+														,603,700
+														,316,710
+														,602,720
+														,215,730
+														,128,740
+														,309,750
+														,214,760
+														,308,770
+														,142,780
+														,313,790
+														,217,800
+														,216,810
+														,401,820
+														,402,830
+														,218,840
+														,403,850
+														,221,860
+														,604,870
+														,192,880
+														,131,890
+														,144,900
+														,220,910
+														,307,920
+														,317,930
+														,149,940
+														,219,950
+														,222,960
+														,151,970
+														,148,980
+														,156,990
+														,701,1000
+														,146,1010
+														,605,1020
+														,318,1030
+														,319,1040
+														,171,1050
+														,172,1060
+														,147,1070
+														,223,1080
+														,152,1090
+														,320,1100
+														,321,1110
+														,300,1120
+														,173,1130
+														,176,1140
+														,322,1150
+														,501,1160
+														,181,1170
+														,177,1180
+														,605,1020
+														,318,1030
+														,319,1040
+														,171,1050
+														,172,1060
+														,147,1070
+														,223,1080
+														,152,1090
+														,320,1100
+														,321,1110
+														,300,1120
+														,173,1130
+														,176,1140
+														,322,1150
+														,501,1160
+														,181,1170
+														,177,1180
+														,178,1190
+														,179,1200
+														,164,1210
+														,166,1220
+														,154,1230
+														,157,1240
+														,178,1190
+														,179,1200
+														,164,1210
+														,166,1220
+														,154,1230
+														,157,1240
+														,158,1250													
+														,161,1260
+														,162,1270
+														,167,1280
+														,325,1290
+														,139,1300
+														,163,1310
+														,168,1320
+														,159,1330
+														,132,1340
+														,184,1350
+														,183,1360
+														,182,1370
+														,169,1380
+														,186,1390
+														,187,1400
+														,189,1410
+														,606,1420
+														,224,1430
+														,188,1440
+														,193,1450
+														,326,1460
+														,323,1470
+														,134,1480
+														,136,1490
+														,198,1500
+														,153,1510
+														,197,1520
+														,143,1530
+														,191,1540
+														,851,1550
+														,225,1560
+														,853,1570
+														,852,1580
+														,803,1590
+														,854,1600
+														,856,1610
+														,862,1620
+														,859,1630
+														,864,1640
+														,327,1650
+														,858,1660
+														,226,1670
+														,863,1680
+														,861,1690
+														,860,1700
+														,857,1710
+														,866,1720
+														,865,1730
+														,868,1740
+														,869,1750
+														,804,1760
+														,870,1770
+														,871,1780
+														,872,1790
+														,867,1800
+														,855,1810
+														,751,1820
+														,873,1830
+														,850,8000
+														,299,8010
+														,300,8020
+														,600,8030
+														,399,8040
+														,400,8050
+														,199,8060
+														,700,8070
+														,500,8080
+														,802,8090
+														,750,8100
+														,650,8110
+														,133,9000
+														,137,9010
+														,138,9020
+														,194,9030
+														,196,9040
+														,303,9050,10000)
+			 )
+        ,Cliente[Clasificacion SIF] in {"Persona Natural","Persona Juridica","Institucionales","Entidades Financieras",
+                                         "Entidades Financieras Medpl","Bonos Subordinados","Subordinadas Exterior"}    
+         
+		)</Statement>
+            <ParameterDefinitions>
+              <ParameterDefinition>
+                <Name>prFechaDiaria</Name>
+                <DefaultValues>
+                  <DefaultValue>20220602</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaDiaria</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+              </ParameterDefinition>
+            </ParameterDefinitions>
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="Sigla_Sucursal">
+        <DataField>PAF[Sigla Sucursal]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Nombre_Agencia">
+        <DataField>PAF[Nombre Agencia]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cod_Agencia">
+        <DataField>PAF[Cod Agencia]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Captacion">
+        <DataField>Producto[Captacion]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="productoSinMoneda">
+        <DataField>Captacion[productoSinMoneda]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="fecha">
+        <DataField>Fecha[fecha]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="mes">
+        <DataField>Fecha[mes]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Clasificacion_SIF">
+        <DataField>Cliente[Clasificacion SIF]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_USD_con_BSEI">
+        <DataField>[Saldo USD con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Cantidad_de_Contratos">
+        <DataField>[Cantidad de Contratos]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_Bs_con_BSEI">
+        <DataField>[Saldo Bs con BSEI]</DataField>
+        <rd:TypeName>System.Int32</rd:TypeName>
+      </Field>
+      <Field Name="Interes_Bs">
+        <DataField>[Interes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_USD_Mes_Anterior">
+        <DataField>[Saldo USD Mes Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Cant_de_Contratos_Mes_Anterior">
+        <DataField>[Cant de Contratos Mes Anterior]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Interes_ANT_mes_Bs">
+        <DataField>[Interes ANT mes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Saldo_ANT_mes_Bs">
+        <DataField>[Saldo ANT mes Bs]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="orden_agencia">
+        <DataField>[orden agencia]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>

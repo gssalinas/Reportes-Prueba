@@ -1,0 +1,219 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SharedDataSet xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/shareddatasetdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSet Name="DataSet1">
+    <Query>
+      <DataSourceReference>dsCAPTACIONES</DataSourceReference>
+      <DataSetParameters>
+        <DataSetParameter Name="prFechaDiaria">
+          <DefaultValue>20220501</DefaultValue>
+          <ReadOnly>false</ReadOnly>
+          <Nullable>false</Nullable>
+          <OmitFromQuery>false</OmitFromQuery>
+          <rd:DbType>Object</rd:DbType>
+        </DataSetParameter>
+      </DataSetParameters>
+      <CommandText>define
+
+MEASURE 'Saldo Captacion'[Canal Digital Actual] =  CALCULATE( [Saldo USD], PAF[Cod Agencia]=868)   
+MEASURE 'Saldo Captacion'[Canal Normal Actual] =  CALCULATE( [Saldo USD], PAF[Cod Agencia]&lt;&gt;868)   
+MEASURE 'Saldo Captacion'[Canal Digital Año Ant] =  CALCULATE( [Saldo USD Año Anterior con BSEI], PAF[Cod Agencia]=868)   
+MEASURE 'Saldo Captacion'[Canal Normal Año Ant] =  CALCULATE( [Saldo USD Año Anterior con BSEI], PAF[Cod Agencia]&lt;&gt;868)   
+MEASURE 'Saldo Captacion'[Canal Digital Mes Ant] =  CALCULATE( [Saldo USD Mes Anterior con BSEI], PAF[Cod Agencia]=868)   
+MEASURE 'Saldo Captacion'[Canal Normal Mes Ant] =  CALCULATE( [Saldo USD Mes Anterior con BSEI], PAF[Cod Agencia]&lt;&gt;868)   
+MEASURE 'Saldo Captacion'[Canal Digital dia Ant] =  CALCULATE( [Saldo USD dia Anterior con BSEI], PAF[Cod Agencia]=868)   
+MEASURE 'Saldo Captacion'[Canal Normal dia Ant] =  CALCULATE( [Saldo USD dia Anterior con BSEI], PAF[Cod Agencia]&lt;&gt;868)   
+
+EVALUATE
+CALCULATETABLE(
+  ADDCOLUMNS(
+	   SUMMARIZE('Saldo Captacion',
+	             Fecha[Fecha]
+	             )
+	    ,"Canal Digital Actual",[Canal Digital Actual]/1000
+	    ,"Canal Normal Actual",[Canal Normal Actual]/1000
+	    ,"Canal Digital Año Ant",[Canal Digital Año Ant]/1000
+	    ,"Canal Normal Año Ant",[Canal Normal Año Ant]/1000
+	    ,"Canal Digital Mes Ant",[Canal Digital Mes Ant]/1000
+	    ,"Canal Normal Mes Ant",[Canal Normal Mes Ant]/1000
+	    ,"Canal Digital dia Ant",[Canal Digital dia Ant]/1000
+	    ,"Canal Normal dia Ant",[Canal Normal dia Ant]/1000	    
+    )
+    ,filter(fecha,
+	        (Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; month(Fecha[fecha])=12 &amp;&amp; YEAR (Fecha[fecha] ) &gt;= value(Mid(@prFechaDiaria,1,4))-1) --saldo anual del ultimo año
+	        ||(Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; year(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4)) &amp;&amp; Fecha[id]&lt;value(@prFechaDiaria)) --saldo mensual deL año ACTUAL
+	        ||(YEAR(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4))-1 &amp;&amp; month(Fecha[fecha])=value(MID(@prFechaDiaria,5,2)) &amp;&amp; day(fecha[fecha])=VALUE(MID(@prFechaDiaria,7,2))) --misma fecha año anterior
+	        || Fecha[fecha]&gt;DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2))-7 &amp;&amp; Fecha[id]&lt;=value(@prFechaDiaria) --ultimos 7 dias
+			 )
+	,Captacion[recurso]="cah"
+	
+	)</CommandText>
+      <rd:DesignerState>
+        <QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition">
+          <CommandType>DAX</CommandType>
+          <Type>Query</Type>
+          <QuerySpecification xsi:type="MDXQuerySpecification">
+            <Select>
+              <Items>
+                <Item>
+                  <ID xsi:type="Level">
+                    <DimensionName>Fecha</DimensionName>
+                    <HierarchyName>fecha</HierarchyName>
+                    <HierarchyUniqueName>[Fecha].[fecha]</HierarchyUniqueName>
+                    <LevelName>fecha</LevelName>
+                    <UniqueName>[Fecha].[fecha].[fecha]</UniqueName>
+                  </ID>
+                  <ItemCaption>fecha</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Canal Digital Actual]</ColumnName>
+                  </ID>
+                  <ItemCaption>Canal Digital Actual</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Canal Normal Actual]</ColumnName>
+                  </ID>
+                  <ItemCaption>Canal Normal Actual</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Canal Digital Año Ant]</ColumnName>
+                  </ID>
+                  <ItemCaption>Canal Digital Año Ant</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Canal Normal Año Ant]</ColumnName>
+                  </ID>
+                  <ItemCaption>Canal Normal Año Ant</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Canal Digital Mes Ant]</ColumnName>
+                  </ID>
+                  <ItemCaption>Canal Digital Mes Ant</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Canal Normal Mes Ant]</ColumnName>
+                  </ID>
+                  <ItemCaption>Canal Normal Mes Ant</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Canal Digital dia Ant]</ColumnName>
+                  </ID>
+                  <ItemCaption>Canal Digital dia Ant</ItemCaption>
+                </Item>
+                <Item>
+                  <ID xsi:type="Column">
+                    <ColumnName>[Canal Normal dia Ant]</ColumnName>
+                  </ID>
+                  <ItemCaption>Canal Normal dia Ant</ItemCaption>
+                </Item>
+              </Items>
+            </Select>
+            <AutoExecute>false</AutoExecute>
+            <From>Captaciones</From>
+            <Filter>
+              <FilterItems />
+            </Filter>
+            <Calculations />
+            <Aggregates />
+            <QueryProperties />
+          </QuerySpecification>
+          <Query>
+            <Statement>define
+
+MEASURE 'Saldo Captacion'[Canal Digital Actual] =  CALCULATE( [Saldo USD], PAF[Cod Agencia]=868)   
+MEASURE 'Saldo Captacion'[Canal Normal Actual] =  CALCULATE( [Saldo USD], PAF[Cod Agencia]&lt;&gt;868)   
+MEASURE 'Saldo Captacion'[Canal Digital Año Ant] =  CALCULATE( [Saldo USD Año Anterior con BSEI], PAF[Cod Agencia]=868)   
+MEASURE 'Saldo Captacion'[Canal Normal Año Ant] =  CALCULATE( [Saldo USD Año Anterior con BSEI], PAF[Cod Agencia]&lt;&gt;868)   
+MEASURE 'Saldo Captacion'[Canal Digital Mes Ant] =  CALCULATE( [Saldo USD Mes Anterior con BSEI], PAF[Cod Agencia]=868)   
+MEASURE 'Saldo Captacion'[Canal Normal Mes Ant] =  CALCULATE( [Saldo USD Mes Anterior con BSEI], PAF[Cod Agencia]&lt;&gt;868)   
+MEASURE 'Saldo Captacion'[Canal Digital dia Ant] =  CALCULATE( [Saldo USD dia Anterior con BSEI], PAF[Cod Agencia]=868)   
+MEASURE 'Saldo Captacion'[Canal Normal dia Ant] =  CALCULATE( [Saldo USD dia Anterior con BSEI], PAF[Cod Agencia]&lt;&gt;868)   
+
+EVALUATE
+CALCULATETABLE(
+  ADDCOLUMNS(
+	   SUMMARIZE('Saldo Captacion',
+	             Fecha[Fecha]
+	             )
+	    ,"Canal Digital Actual",[Canal Digital Actual]/1000
+	    ,"Canal Normal Actual",[Canal Normal Actual]/1000
+	    ,"Canal Digital Año Ant",[Canal Digital Año Ant]/1000
+	    ,"Canal Normal Año Ant",[Canal Normal Año Ant]/1000
+	    ,"Canal Digital Mes Ant",[Canal Digital Mes Ant]/1000
+	    ,"Canal Normal Mes Ant",[Canal Normal Mes Ant]/1000
+	    ,"Canal Digital dia Ant",[Canal Digital dia Ant]/1000
+	    ,"Canal Normal dia Ant",[Canal Normal dia Ant]/1000	    
+    )
+    ,filter(fecha,
+	        (Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; month(Fecha[fecha])=12 &amp;&amp; YEAR (Fecha[fecha] ) &gt;= value(Mid(@prFechaDiaria,1,4))-1) --saldo anual del ultimo año
+	        ||(Fecha[fecha]=EOMONTH(fecha[fecha],0) &amp;&amp; year(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4)) &amp;&amp; Fecha[id]&lt;value(@prFechaDiaria)) --saldo mensual deL año ACTUAL
+	        ||(YEAR(Fecha[fecha])=value(Mid(@prFechaDiaria,1,4))-1 &amp;&amp; month(Fecha[fecha])=value(MID(@prFechaDiaria,5,2)) &amp;&amp; day(fecha[fecha])=VALUE(MID(@prFechaDiaria,7,2))) --misma fecha año anterior
+	        || Fecha[fecha]&gt;DATE(MID(@prFechaDiaria,1,4),MID(@prFechaDiaria,5,2),MID(@prFechaDiaria,7,2))-7 &amp;&amp; Fecha[id]&lt;=value(@prFechaDiaria) --ultimos 7 dias
+			 )
+	,Captacion[recurso]="cah"
+	
+	)</Statement>
+            <ParameterDefinitions>
+              <ParameterDefinition>
+                <Name>prFechaDiaria</Name>
+                <DefaultValues>
+                  <DefaultValue>20220501</DefaultValue>
+                </DefaultValues>
+                <Caption>prFechaDiaria</Caption>
+                <ParameterValuesQuery>
+                  <ParameterizedStatement>
+                    <ReferencedParameters />
+                  </ParameterizedStatement>
+                </ParameterValuesQuery>
+              </ParameterDefinition>
+            </ParameterDefinitions>
+          </Query>
+        </QueryDefinition>
+      </rd:DesignerState>
+    </Query>
+    <Fields>
+      <Field Name="fecha">
+        <DataField>Fecha[fecha]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Canal_Digital_Actual">
+        <DataField>[Canal Digital Actual]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Canal_Normal_Actual">
+        <DataField>[Canal Normal Actual]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Canal_Digital_Año_Ant">
+        <DataField>[Canal Digital Año Ant]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Canal_Normal_Año_Ant">
+        <DataField>[Canal Normal Año Ant]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Canal_Digital_Mes_Ant">
+        <DataField>[Canal Digital Mes Ant]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Canal_Normal_Mes_Ant">
+        <DataField>[Canal Normal Mes Ant]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Canal_Digital_dia_Ant">
+        <DataField>[Canal Digital dia Ant]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+      <Field Name="Canal_Normal_dia_Ant">
+        <DataField>[Canal Normal dia Ant]</DataField>
+        <rd:TypeName>System.String</rd:TypeName>
+      </Field>
+    </Fields>
+  </DataSet>
+</SharedDataSet>
